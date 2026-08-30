@@ -1,10 +1,5 @@
 {
   "rewrites": [
-    { "source": "/login", "destination": "/login.html" },
-    { "source": "/signup", "destination": "/signup.html" },
-    { "source": "/admin", "destination": "/admin.html" },
-    { "source": "/caseworker", "destination": "/voucher-caseworker.html" },
-    { "source": "/landlord", "destination": "/voucher-landlord.html" },
-    { "source": "/dashboard", "destination": "/dashboard.html" }
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
