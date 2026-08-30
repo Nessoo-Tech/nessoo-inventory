@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nessoo · Admin</title>
+  <link rel="icon" type="image/png" href="https://www.vryfiexchange.com/favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=DM+Serif+Display&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #faf8f4;
+      --card: #ffffff;
+      --border: rgba(0,0,0,.07);
+      --border-strong: rgba(0,0,0,.12);
+      --text: #1a1a1a;
+      --text-secondary: #6b6560;
+      --text-muted: #a09890;
+      --forest: #1b6b4a;
+      --forest-dark: #14503a;
+      --forest-light: #e6f2ec;
+      --forest-soft: rgba(27,107,74,.08);
+      --green-soft: rgba(27,107,74,.10);
+      --amber: #c4830a;
+      --amber-soft: rgba(196,131,10,.10);
+      --coral: #d4644a;
+      --coral-soft: rgba(212,100,74,.10);
+      --font-sans: 'Inter', -apple-system, sans-serif;
+      --font-serif: 'DM Serif Display', Georgia, serif;
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── TOPBAR ── */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 28px;
+      height: 56px;
+      flex-shrink: 0;
+      border-bottom: 1px solid var(--border);
+      background: var(--card);
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .topbar-logo {
+      width: 28px; height: 28px;
+      background: var(--forest);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .topbar-logo svg { width: 14px; height: 14px; fill: white; }
+
+    .topbar-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: -.01em;
+    }
+
+    .topbar-title span { color: var(--text-muted); font-weight: 400; }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .avatar {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: var(--forest);
+      color: white;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700;
+    }
+
+    .btn-logout {
+      padding: 6px 14px;
+      border: 1px solid var(--border-strong);
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      background: transparent;
+      cursor: pointer;
+      font-family: var(--font-sans);
+      transition: all .15s;
+    }
+
+    .btn-logout:hover {
+      border-color: var(--coral);
+      color: var(--coral);
+    }
+
+    /* ── TAB NAV ── */
+    .tab-nav {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 12px 28px;
+      border-bottom: 1px solid var(--border);
+      background: var(--card);
+      overflow-x: auto;
+    }
+
+    .tab-pill {
+      padding: 7px 16px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      font-family: var(--font-sans);
+      white-space: nowrap;
+      transition: all .15s;
+    }
+
+    .tab-pill:hover {
+      background: var(--forest-soft);
+      color: var(--text);
+    }
+
+    .tab-pill.active {
+      background: var(--forest);
+      color: white;
+    }
+
+    /* ── MAIN ── */
+    .main {
+      flex: 1;
+      padding: 24px 28px 40px;
+      max-width: 1200px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* ── SUMMARY CARDS ── */
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+
+    .summary-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 20px;
+    }
+
+    .summary-card .label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .summary-card .value {
+      font-family: var(--font-serif);
+      font-size: 32px;
+      color: var(--text);
+      line-height: 1;
+    }
+
+    .summary-card .value.loading {
+      color: var(--text-muted);
+      font-family: var(--font-sans);
+      font-size: 14px;
+    }
+
+    /* ── TABLE ── */
+    .table-wrap {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+    }
+
+    .table-wrap table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .table-wrap thead th {
+      text-align: left;
+      padding: 12px 16px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+    }
+
+    .table-wrap tbody td {
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+      vertical-align: middle;
+    }
+
+    .table-wrap tbody tr:last-child td { border-bottom: none; }
+
+    .table-wrap tbody tr:hover { background: var(--forest-soft); }
+
+    .table-empty {
+      padding: 40px 16px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    /* ── STATUS BADGES ── */
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .badge-green { background: var(--green-soft); color: var(--forest); }
+    .badge-amber { background: var(--amber-soft); color: var(--amber); }
+    .badge-coral { background: var(--coral-soft); color: var(--coral); }
+    .badge-muted { background: rgba(0,0,0,.05); color: var(--text-muted); }
+
+    /* ── FORMS ── */
+    .form-section {
+      margin-top: 24px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 20px;
+    }
+
+    .form-section h3 {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      color: var(--text);
+    }
+
+    .form-row {
+      display: flex;
+      gap: 12px;
+      align-items: flex-end;
+      flex-wrap: wrap;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex: 1;
+      min-width: 180px;
+    }
+
+    .form-group label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+
+    .form-group input,
+    .form-group select {
+      padding: 8px 12px;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text);
+      outline: none;
+      transition: border-color .15s;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+      border-color: var(--forest);
+    }
+
+    .btn-primary {
+      padding: 8px 20px;
+      background: var(--forest);
+      color: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 600;
+      font-family: var(--font-sans);
+      cursor: pointer;
+      transition: background .15s;
+      white-space: nowrap;
+    }
+
+    .btn-primary:hover { background: var(--forest-dark); }
+    .btn-primary:disabled { opacity: .5; cursor: not-allowed; }
+
+    /* ── STAGE SELECT (pipeline) ── */
+    .stage-select {
+      padding: 4px 8px;
+      border: 1px solid var(--border-strong);
+      border-radius: 6px;
+      font-size: 12px;
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    /* ── TOAST ── */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .toast {
+      padding: 12px 20px;
+      background: var(--forest-dark);
+      color: white;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 500;
+      box-shadow: 0 4px 20px rgba(0,0,0,.15);
+      animation: toastIn .25s ease;
+      max-width: 360px;
+    }
+
+    .toast.error {
+      background: var(--coral);
+    }
+
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── LOADING ── */
+    .spinner {
+      display: inline-block;
+      width: 16px; height: 16px;
+      border: 2px solid var(--border-strong);
+      border-top-color: var(--forest);
+      border-radius: 50%;
+      animation: spin .6s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loading-row td {
+      text-align: center;
+      padding: 32px 16px !important;
+      color: var(--text-muted);
+    }
+
+    /* ── FOOTER ── */
+    .footer {
+      text-align: center;
+      padding: 20px 28px;
+      font-size: 12px;
+      color: var(--text-muted);
+      border-top: 1px solid var(--border);
+    }
+
+    /* ── FORM NOTE ── */
+    .form-note {
+      margin-top: 12px;
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* ── SECTION TITLE ── */
+    .section-title {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+  </style>
+</head>
+<body>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/supabase-client.js"></script>
+  <script src="/js/auth-guard.js"></script>
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-logo">
+        <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      </div>
+      <div class="topbar-title">Nessoo <span>· Admin</span></div>
+    </div>
+    <div class="topbar-right">
+      <div class="avatar" id="userAvatar">--</div>
+      <button class="btn-logout" onclick="logout()">Log out</button>
+    </div>
+  </div>
+
+  <!-- TAB NAV -->
+  <div class="tab-nav" id="tabNav">
+    <button class="tab-pill active" data-tab="overview">Overview</button>
+    <button class="tab-pill" data-tab="users">Users</button>
+    <button class="tab-pill" data-tab="organizations">Organizations</button>
+    <button class="tab-pill" data-tab="invitations">Invitations</button>
+    <button class="tab-pill" data-tab="households">Households</button>
+    <button class="tab-pill" data-tab="units">Units</button>
+    <button class="tab-pill" data-tab="pipeline">Pipeline</button>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="main">
+
+    <!-- OVERVIEW TAB -->
+    <div class="tab-content active" id="tab-overview">
+      <div class="summary-grid">
+        <div class="summary-card">
+          <div class="label">Total Users</div>
+          <div class="value loading" id="stat-users"><span class="spinner"></span></div>
+        </div>
+        <div class="summary-card">
+          <div class="label">Total Households</div>
+          <div class="value loading" id="stat-households"><span class="spinner"></span></div>
+        </div>
+        <div class="summary-card">
+          <div class="label">Total Units</div>
+          <div class="value loading" id="stat-units"><span class="spinner"></span></div>
+        </div>
+        <div class="summary-card">
+          <div class="label">Active Pipeline</div>
+          <div class="value loading" id="stat-pipeline"><span class="spinner"></span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- USERS TAB -->
+    <div class="tab-content" id="tab-users">
+      <div class="section-title">All Users</div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Organization</th>
+              <th>Joined</th>
+            </tr>
+          </thead>
+          <tbody id="users-tbody">
+            <tr class="loading-row"><td colspan="5"><span class="spinner"></span> Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ORGANIZATIONS TAB -->
+    <div class="tab-content" id="tab-organizations">
+      <div class="section-title">Organizations</div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Type</th>
+              <th>Created</th>
+            </tr>
+          </thead>
+          <tbody id="orgs-tbody">
+            <tr class="loading-row"><td colspan="3"><span class="spinner"></span> Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="form-section">
+        <h3>Add Organization</h3>
+        <form id="addOrgForm" class="form-row">
+          <div class="form-group">
+            <label>Name</label>
+            <input type="text" id="orgName" required placeholder="Organization name">
+          </div>
+          <div class="form-group" style="max-width:240px;">
+            <label>Type</label>
+            <select id="orgType" required>
+              <option value="">Select type...</option>
+              <option value="housing_program">Housing Program</option>
+              <option value="management_company">Management Company</option>
+            </select>
+          </div>
+          <button type="submit" class="btn-primary">Add Organization</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- INVITATIONS TAB -->
+    <div class="tab-content" id="tab-invitations">
+      <div class="section-title">Invitations</div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Organization</th>
+              <th>Status</th>
+              <th>Sent</th>
+            </tr>
+          </thead>
+          <tbody id="invitations-tbody">
+            <tr class="loading-row"><td colspan="5"><span class="spinner"></span> Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="form-section">
+        <h3>Send Invitation</h3>
+        <form id="sendInviteForm" class="form-row">
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="inviteEmail" required placeholder="user@example.com">
+          </div>
+          <div class="form-group" style="max-width:180px;">
+            <label>Role</label>
+            <select id="inviteRole" required>
+              <option value="">Select role...</option>
+              <option value="caseworker">Caseworker</option>
+              <option value="landlord">Landlord</option>
+            </select>
+          </div>
+          <div class="form-group" style="max-width:240px;">
+            <label>Organization</label>
+            <select id="inviteOrg" required>
+              <option value="">Select org...</option>
+            </select>
+          </div>
+          <button type="submit" class="btn-primary">Send Invitation</button>
+        </form>
+        <div class="form-note">This creates an invitation record. Tell the user to sign up at <strong>/signup.html</strong> -- their role and organization will be auto-assigned.</div>
+      </div>
+    </div>
+
+    <!-- HOUSEHOLDS TAB -->
+    <div class="tab-content" id="tab-households">
+      <div class="section-title">Households</div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Program</th>
+              <th>Bedrooms</th>
+              <th>Status</th>
+              <th>Stage</th>
+              <th>Caseworker</th>
+              <th>Added</th>
+            </tr>
+          </thead>
+          <tbody id="households-tbody">
+            <tr class="loading-row"><td colspan="7"><span class="spinner"></span> Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- UNITS TAB -->
+    <div class="tab-content" id="tab-units">
+      <div class="section-title">Units</div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Address</th>
+              <th>Unit</th>
+              <th>Beds/Baths</th>
+              <th>Rent</th>
+              <th>Programs</th>
+              <th>Inspection</th>
+              <th>Landlord</th>
+            </tr>
+          </thead>
+          <tbody id="units-tbody">
+            <tr class="loading-row"><td colspan="7"><span class="spinner"></span> Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- PIPELINE TAB -->
+    <div class="tab-content" id="tab-pipeline">
+      <div class="section-title">Pipeline</div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Household</th>
+              <th>Unit</th>
+              <th>Program</th>
+              <th>Stage</th>
+              <th>Landlord</th>
+              <th>Caseworker</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody id="pipeline-tbody">
+            <tr class="loading-row"><td colspan="7"><span class="spinner"></span> Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">Nessoo Admin · Voucher Matching Platform</div>
+
+  <!-- TOAST CONTAINER -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script>
+    /* ═══════════════════════════════════════
+       HELPERS
+       ═══════════════════════════════════════ */
+    function showToast(msg, isError = false) {
+      const container = document.getElementById('toastContainer');
+      const el = document.createElement('div');
+      el.className = 'toast' + (isError ? ' error' : '');
+      el.textContent = msg;
+      container.appendChild(el);
+      setTimeout(() => el.remove(), 3500);
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return '--';
+      const d = new Date(dateStr);
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    function formatType(type) {
+      if (!type) return '--';
+      return type.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    }
+
+    const PIPELINE_STAGES = ['Accepted', 'Submission', 'Inspection', 'Approval', 'Lease Signed'];
+
+    /* ═══════════════════════════════════════
+       TAB SWITCHING
+       ═══════════════════════════════════════ */
+    const tabNav = document.getElementById('tabNav');
+    const pills = tabNav.querySelectorAll('.tab-pill');
+
+    pills.forEach(pill => {
+      pill.addEventListener('click', () => {
+        pills.forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+        document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+        document.getElementById('tab-' + pill.dataset.tab).classList.add('active');
+      });
+    });
+
+    /* ═══════════════════════════════════════
+       DATA LOADING
+       ═══════════════════════════════════════ */
+
+    // Cache for organizations (used in invitations form)
+    let orgsCache = [];
+
+    async function loadOverview() {
+      const [users, households, units, pipeline] = await Promise.all([
+        supabase.from('profiles').select('*', { count: 'exact', head: true }),
+        supabase.from('households').select('*', { count: 'exact', head: true }),
+        supabase.from('units').select('*', { count: 'exact', head: true }),
+        supabase.from('pipeline').select('*', { count: 'exact', head: true }),
+      ]);
+
+      const set = (id, val) => {
+        const el = document.getElementById(id);
+        el.textContent = val ?? '0';
+        el.classList.remove('loading');
+      };
+
+      set('stat-users', users.count);
+      set('stat-households', households.count);
+      set('stat-units', units.count);
+      set('stat-pipeline', pipeline.count);
+    }
+
+    async function loadUsers() {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, full_name, email, role, organization_id, created_at, organizations(name)')
+        .order('created_at', { ascending: false });
+
+      const tbody = document.getElementById('users-tbody');
+      if (error || !data) {
+        tbody.innerHTML = `<tr><td colspan="5" class="table-empty">Failed to load users.</td></tr>`;
+        return;
+      }
+      if (data.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="table-empty">No users found.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = data.map(u => `
+        <tr>
+          <td>${escapeHtml(u.full_name) || '--'}</td>
+          <td>${escapeHtml(u.email) || '--'}</td>
+          <td><span class="badge ${u.role === 'admin' ? 'badge-coral' : u.role === 'caseworker' ? 'badge-green' : 'badge-amber'}">${u.role || '--'}</span></td>
+          <td>${escapeHtml(u.organizations?.name) || '--'}</td>
+          <td>${formatDate(u.created_at)}</td>
+        </tr>
+      `).join('');
+    }
+
+    async function loadOrganizations() {
+      const { data, error } = await supabase
+        .from('organizations')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      const tbody = document.getElementById('orgs-tbody');
+      if (error || !data) {
+        tbody.innerHTML = `<tr><td colspan="3" class="table-empty">Failed to load organizations.</td></tr>`;
+        return;
+      }
+
+      orgsCache = data;
+      populateOrgDropdown();
+
+      if (data.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="3" class="table-empty">No organizations found.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = data.map(o => `
+        <tr>
+          <td>${escapeHtml(o.name)}</td>
+          <td>${formatType(o.type)}</td>
+          <td>${formatDate(o.created_at)}</td>
+        </tr>
+      `).join('');
+    }
+
+    function populateOrgDropdown() {
+      const sel = document.getElementById('inviteOrg');
+      sel.innerHTML = '<option value="">Select org...</option>' +
+        orgsCache.map(o => `<option value="${o.id}">${escapeHtml(o.name)}</option>`).join('');
+    }
+
+    async function loadInvitations() {
+      const { data, error } = await supabase
+        .from('invitations')
+        .select('id, email, role, status, created_at, organization_id, organizations(name)')
+        .order('created_at', { ascending: false });
+
+      const tbody = document.getElementById('invitations-tbody');
+      if (error || !data) {
+        tbody.innerHTML = `<tr><td colspan="5" class="table-empty">Failed to load invitations.</td></tr>`;
+        return;
+      }
+      if (data.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="table-empty">No invitations yet.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = data.map(inv => `
+        <tr>
+          <td>${escapeHtml(inv.email)}</td>
+          <td><span class="badge ${inv.role === 'caseworker' ? 'badge-green' : 'badge-amber'}">${inv.role}</span></td>
+          <td>${escapeHtml(inv.organizations?.name) || '--'}</td>
+          <td><span class="badge ${inv.status === 'accepted' ? 'badge-green' : 'badge-muted'}">${inv.status === 'accepted' ? 'Accepted' : 'Pending'}</span></td>
+          <td>${formatDate(inv.created_at)}</td>
+        </tr>
+      `).join('');
+    }
+
+    async function loadHouseholds() {
+      const { data, error } = await supabase
+        .from('households')
+        .select('id, name, program, bedrooms, status, stage, created_at, caseworker_id, profiles!households_caseworker_id_fkey(full_name)')
+        .order('created_at', { ascending: false });
+
+      const tbody = document.getElementById('households-tbody');
+      if (error || !data) {
+        tbody.innerHTML = `<tr><td colspan="7" class="table-empty">Failed to load households.</td></tr>`;
+        return;
+      }
+      if (data.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="table-empty">No households found.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = data.map(h => `
+        <tr>
+          <td>${escapeHtml(h.name)}</td>
+          <td>${escapeHtml(h.program) || '--'}</td>
+          <td>${h.bedrooms ?? '--'}</td>
+          <td><span class="badge ${h.status === 'active' ? 'badge-green' : 'badge-muted'}">${h.status || '--'}</span></td>
+          <td>${escapeHtml(h.stage) || '--'}</td>
+          <td>${escapeHtml(h.profiles?.full_name) || '--'}</td>
+          <td>${formatDate(h.created_at)}</td>
+        </tr>
+      `).join('');
+    }
+
+    async function loadUnits() {
+      const { data, error } = await supabase
+        .from('units')
+        .select('id, address, unit_number, bedrooms, bathrooms, rent, programs, inspection_status, landlord_id, profiles!units_landlord_id_fkey(full_name)')
+        .order('created_at', { ascending: false });
+
+      const tbody = document.getElementById('units-tbody');
+      if (error || !data) {
+        tbody.innerHTML = `<tr><td colspan="7" class="table-empty">Failed to load units.</td></tr>`;
+        return;
+      }
+      if (data.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="table-empty">No units found.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = data.map(u => `
+        <tr>
+          <td>${escapeHtml(u.address)}</td>
+          <td>${escapeHtml(u.unit_number) || '--'}</td>
+          <td>${u.bedrooms ?? '-'}/${u.bathrooms ?? '-'}</td>
+          <td>${u.rent ? '$' + Number(u.rent).toLocaleString() : '--'}</td>
+          <td>${escapeHtml(Array.isArray(u.programs) ? u.programs.join(', ') : u.programs) || '--'}</td>
+          <td><span class="badge ${u.inspection_status === 'passed' ? 'badge-green' : u.inspection_status === 'failed' ? 'badge-coral' : 'badge-muted'}">${u.inspection_status || '--'}</span></td>
+          <td>${escapeHtml(u.profiles?.full_name) || '--'}</td>
+        </tr>
+      `).join('');
+    }
+
+    async function loadPipeline() {
+      const { data, error } = await supabase
+        .from('pipeline')
+        .select('id, stage, program, created_at, households(name), units(address, unit_number), landlord:profiles!pipeline_landlord_id_fkey(full_name), caseworker:profiles!pipeline_caseworker_id_fkey(full_name)')
+        .order('created_at', { ascending: false });
+
+      const tbody = document.getElementById('pipeline-tbody');
+      if (error || !data) {
+        tbody.innerHTML = `<tr><td colspan="7" class="table-empty">Failed to load pipeline.</td></tr>`;
+        return;
+      }
+      if (data.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="table-empty">No pipeline entries.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = data.map(p => {
+        const unitLabel = p.units ? (p.units.address + (p.units.unit_number ? ' #' + p.units.unit_number : '')) : '--';
+        const stageOptions = PIPELINE_STAGES.map(s => `<option value="${s}" ${s === p.stage ? 'selected' : ''}>${s}</option>`).join('');
+        return `
+          <tr>
+            <td>${escapeHtml(p.households?.name) || '--'}</td>
+            <td>${escapeHtml(unitLabel)}</td>
+            <td>${escapeHtml(p.program) || '--'}</td>
+            <td>
+              <select class="stage-select" data-pipeline-id="${p.id}" onchange="updateStage(this)">
+                ${stageOptions}
+              </select>
+            </td>
+            <td>${escapeHtml(p.landlord?.full_name) || '--'}</td>
+            <td>${escapeHtml(p.caseworker?.full_name) || '--'}</td>
+            <td>${formatDate(p.created_at)}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    /* ═══════════════════════════════════════
+       ACTIONS
+       ═══════════════════════════════════════ */
+
+    async function updateStage(selectEl) {
+      const pipelineId = selectEl.dataset.pipelineId;
+      const stage = selectEl.value;
+      const { error } = await supabase
+        .from('pipeline')
+        .update({ stage })
+        .eq('id', pipelineId);
+
+      if (error) {
+        showToast('Failed to update stage: ' + error.message, true);
+      } else {
+        showToast('Stage updated to ' + stage);
+      }
+    }
+
+    // Add Organization
+    document.getElementById('addOrgForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = e.target.querySelector('button[type="submit"]');
+      btn.disabled = true;
+
+      const name = document.getElementById('orgName').value.trim();
+      const type = document.getElementById('orgType').value;
+
+      if (!name || !type) {
+        showToast('Please fill in all fields.', true);
+        btn.disabled = false;
+        return;
+      }
+
+      const { error } = await supabase
+        .from('organizations')
+        .insert({ name, type });
+
+      if (error) {
+        showToast('Failed to add organization: ' + error.message, true);
+      } else {
+        showToast('Organization added: ' + name);
+        document.getElementById('orgName').value = '';
+        document.getElementById('orgType').value = '';
+        loadOrganizations();
+      }
+      btn.disabled = false;
+    });
+
+    // Send Invitation
+    document.getElementById('sendInviteForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = e.target.querySelector('button[type="submit"]');
+      btn.disabled = true;
+
+      const email = document.getElementById('inviteEmail').value.trim();
+      const role = document.getElementById('inviteRole').value;
+      const organization_id = document.getElementById('inviteOrg').value;
+
+      if (!email || !role || !organization_id) {
+        showToast('Please fill in all fields.', true);
+        btn.disabled = false;
+        return;
+      }
+
+      const { error } = await supabase
+        .from('invitations')
+        .insert({
+          email,
+          role,
+          organization_id,
+          invited_by: window.currentUser.id
+        });
+
+      if (error) {
+        showToast('Failed to send invitation: ' + error.message, true);
+      } else {
+        showToast('Invitation created for ' + email);
+        document.getElementById('inviteEmail').value = '';
+        document.getElementById('inviteRole').value = '';
+        document.getElementById('inviteOrg').value = '';
+        loadInvitations();
+      }
+      btn.disabled = false;
+    });
+
+    /* ═══════════════════════════════════════
+       INIT
+       ═══════════════════════════════════════ */
+    (async function init() {
+      const user = await initAuth('admin');
+      if (!user) return;
+
+      // Set avatar initials
+      const initials = (user.fullName || user.email || '')
+        .split(' ')
+        .map(w => w[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2);
+      document.getElementById('userAvatar').textContent = initials || '--';
+
+      // Load all data in parallel
+      await Promise.all([
+        loadOverview(),
+        loadUsers(),
+        loadOrganizations(),
+        loadInvitations(),
+        loadHouseholds(),
+        loadUnits(),
+        loadPipeline(),
+      ]);
+    })();
+  </script>
+</body>
+</html>

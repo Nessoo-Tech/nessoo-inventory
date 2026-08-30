@@ -1,0 +1,1475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nesso · Caseworker</title>
+  <link rel="icon" type="image/png" href="https://www.vryfiexchange.com/favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=DM+Serif+Display&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #faf8f4;
+      --bg-warm: #f5f0e8;
+      --card: #ffffff;
+      --border: rgba(0,0,0,.07);
+      --border-strong: rgba(0,0,0,.12);
+      --text: #1a1a1a;
+      --text-secondary: #6b6560;
+      --text-muted: #a09890;
+      --forest: #1b6b4a;
+      --forest-dark: #14503a;
+      --forest-light: #e6f2ec;
+      --forest-soft: rgba(27,107,74,.08);
+      --green-soft: rgba(27,107,74,.10);
+      --amber: #c4830a;
+      --amber-soft: rgba(196,131,10,.10);
+      --coral: #d4644a;
+      --coral-soft: rgba(212,100,74,.10);
+      --gray: #9a9490;
+      --gray-soft: rgba(154,148,144,.10);
+      --font-sans: 'Inter', -apple-system, sans-serif;
+      --font-serif: 'DM Serif Display', Georgia, serif;
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+    }
+
+    /* TOPBAR */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 28px;
+      height: 56px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .topbar-logo {
+      width: 28px; height: 28px;
+      background: var(--forest);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .topbar-logo svg { width: 14px; height: 14px; fill: white; }
+
+    .topbar-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: -.01em;
+    }
+
+    .topbar-title span { color: var(--text-muted); font-weight: 400; }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .topbar-name {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
+
+    .avatar {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: var(--forest);
+      color: white;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700;
+    }
+
+    /* LAYOUT */
+    .app-layout {
+      display: flex;
+      min-height: calc(100vh - 56px);
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+      width: 220px;
+      flex-shrink: 0;
+      border-right: 1px solid var(--border);
+      background: var(--card);
+      padding: 20px 0;
+    }
+
+    .sidebar-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 24px;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      cursor: pointer;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+      font-family: var(--font-sans);
+      transition: all .15s;
+    }
+
+    .sidebar-item:hover {
+      color: var(--text);
+      background: var(--forest-soft);
+    }
+
+    .sidebar-item.active {
+      color: var(--forest);
+      background: var(--forest-soft);
+      font-weight: 600;
+    }
+
+    .sidebar-item svg {
+      width: 18px; height: 18px;
+      fill: currentColor;
+      flex-shrink: 0;
+    }
+
+    .sidebar-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 12px 24px;
+    }
+
+    .sidebar-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      padding: 8px 24px 4px;
+    }
+
+    /* MAIN CONTENT */
+    .main-content {
+      flex: 1;
+      padding: 28px 32px;
+      overflow-y: auto;
+      min-width: 0;
+    }
+
+    /* PAGE VISIBILITY */
+    .page-view { display: none; }
+    .page-view.active { display: block; }
+
+    /* SECTION BAR */
+    .section-bar {
+      background: var(--forest-dark);
+      color: var(--forest-light);
+      padding: 12px 20px;
+      border-radius: var(--radius-md);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    /* SUMMARY CARDS */
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .summary-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      transition: transform .15s, box-shadow .15s;
+    }
+
+    .summary-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(0,0,0,.08);
+    }
+
+    .summary-card.highlight {
+      background: var(--forest-dark);
+      color: white;
+    }
+
+    .summary-card .card-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+
+    .summary-card.highlight .card-label { color: rgba(255,255,255,.5); }
+
+    .summary-card .card-value {
+      font-size: 32px;
+      font-weight: 700;
+    }
+
+    .summary-card .card-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .summary-card.highlight .card-sub { color: rgba(255,255,255,.45); }
+
+    /* RECENT ACTIVITY */
+    .activity-list {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+
+    .activity-header {
+      padding: 16px 20px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .activity-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      font-size: 14px;
+      cursor: pointer;
+      transition: background .15s;
+      border-radius: 8px;
+    }
+
+    .activity-item:hover {
+      background: var(--forest-soft);
+    }
+
+    .activity-item:active {
+      background: rgba(27,107,74,.14);
+    }
+
+    .activity-item:last-child { border-bottom: none; }
+
+    .activity-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .activity-dot.green { background: var(--forest); }
+    .activity-dot.amber { background: var(--amber); }
+    .activity-dot.coral { background: var(--coral); }
+
+    .activity-text {
+      flex: 1;
+      color: var(--text);
+    }
+
+    .activity-text strong { font-weight: 600; }
+
+    .activity-time {
+      font-size: 12px;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    /* TABLE STYLES */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+    }
+
+    .data-table th {
+      text-align: left;
+      padding: 12px 16px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    .data-table td {
+      padding: 14px 16px;
+      font-size: 14px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+
+    .data-table tr:last-child td { border-bottom: none; }
+
+    .data-table tbody tr {
+      cursor: pointer;
+      transition: background .1s;
+    }
+
+    .data-table tbody tr:hover {
+      background: var(--forest-soft);
+    }
+
+    /* STATUS BADGES */
+    .status-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+
+    .status-badge.ready {
+      color: var(--forest);
+      background: var(--green-soft);
+    }
+
+    .status-badge.pending {
+      color: var(--amber);
+      background: var(--amber-soft);
+    }
+
+    .status-badge.incomplete {
+      color: var(--coral);
+      background: var(--coral-soft);
+    }
+
+    .status-badge.active {
+      color: var(--forest);
+      background: var(--green-soft);
+    }
+
+    .status-badge.expired {
+      color: var(--coral);
+      background: var(--coral-soft);
+    }
+
+    .status-badge.renewal {
+      color: var(--amber);
+      background: var(--amber-soft);
+    }
+
+    .status-badge.matched {
+      color: var(--forest);
+      background: transparent;
+      border: 1px solid var(--forest);
+    }
+
+    /* PROGRAM BADGE */
+    .program-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+      background: var(--forest-soft);
+      color: var(--forest);
+    }
+
+    /* HOUSEHOLD NAME */
+    .hh-name {
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .hh-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* EXPANDED ROW */
+    .expanded-row {
+      display: none;
+    }
+
+    .expanded-row.active {
+      display: table-row;
+    }
+
+    .expanded-row td {
+      background: var(--bg);
+      padding: 20px 24px;
+    }
+
+    .expanded-detail-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px;
+    }
+
+    .detail-group {
+      margin-bottom: 12px;
+    }
+
+    .detail-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .detail-value {
+      font-size: 14px;
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    .doc-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .doc-tag {
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .15s;
+      user-select: none;
+    }
+
+    .doc-tag:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(0,0,0,.08);
+    }
+
+    .doc-tag:active {
+      transform: translateY(0);
+    }
+
+    .doc-tag.complete {
+      background: var(--green-soft);
+      color: var(--forest);
+    }
+
+    .doc-tag.complete::before {
+      content: '\2713 ';
+    }
+
+    .doc-tag.missing {
+      background: var(--coral-soft);
+      color: var(--coral);
+    }
+
+    .doc-tag.missing::before {
+      content: '\2717 ';
+    }
+
+    .neighborhoods-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .neighborhood-tag {
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 500;
+      background: var(--bg-warm);
+      color: var(--text-secondary);
+    }
+
+    /* FORM STYLES */
+    .form-container {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      max-width: 720px;
+    }
+
+    .form-title {
+      font-family: var(--font-serif);
+      font-size: 24px;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .form-subtitle {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-bottom: 28px;
+    }
+
+    .form-section {
+      margin-bottom: 24px;
+    }
+
+    .form-section-title {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--forest);
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .form-row.single {
+      grid-template-columns: 1fr;
+    }
+
+    .form-row.triple {
+      grid-template-columns: 1fr 1fr 1fr;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-group label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      padding: 10px 14px;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      font-family: var(--font-sans);
+      color: var(--text);
+      background: white;
+      outline: none;
+      transition: border-color .15s, box-shadow .15s;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      border-color: var(--forest);
+      box-shadow: 0 0 0 3px var(--forest-soft);
+    }
+
+    .form-group textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .form-group input::placeholder { color: var(--text-muted); }
+
+    /* CHECKBOX GROUP */
+    .checkbox-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .checkbox-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    .checkbox-item input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--forest);
+      cursor: pointer;
+    }
+
+    /* MULTI-SELECT TAGS */
+    .tag-select {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .tag-option {
+      padding: 6px 14px;
+      border: 1px solid var(--border-strong);
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      cursor: pointer;
+      background: transparent;
+      font-family: var(--font-sans);
+      transition: all .15s;
+    }
+
+    .tag-option:hover {
+      border-color: var(--forest);
+      color: var(--forest);
+    }
+
+    .tag-option.selected {
+      background: var(--forest);
+      color: white;
+      border-color: var(--forest);
+    }
+
+    /* SUBMIT BUTTON */
+    .btn-submit {
+      padding: 12px 28px;
+      background: var(--forest);
+      color: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: var(--font-sans);
+      transition: background .15s;
+    }
+
+    .btn-submit:hover {
+      background: var(--forest-dark);
+    }
+
+    .btn-submit:disabled {
+      opacity: .5;
+      cursor: not-allowed;
+    }
+
+    /* SUCCESS MESSAGE */
+    .success-toast {
+      position: fixed;
+      top: 72px;
+      right: 28px;
+      background: var(--forest);
+      color: white;
+      padding: 14px 24px;
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      font-weight: 600;
+      box-shadow: 0 4px 16px rgba(0,0,0,.15);
+      z-index: 100;
+      opacity: 0;
+      transform: translateY(-10px);
+      transition: all .3s;
+      pointer-events: none;
+    }
+
+    .success-toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* FOOTER */
+    .footer {
+      padding: 20px 32px;
+      border-top: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .footer a {
+      color: var(--forest);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .footer a:hover {
+      text-decoration: underline;
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 1024px) {
+      .summary-grid { grid-template-columns: repeat(2, 1fr); }
+      .expanded-detail-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 768px) {
+      .sidebar { display: none; }
+      .main-content { padding: 20px 16px; }
+      .summary-grid { grid-template-columns: 1fr; }
+      .form-row { grid-template-columns: 1fr; }
+      .form-row.triple { grid-template-columns: 1fr; }
+      .expanded-detail-grid { grid-template-columns: 1fr; }
+      .checkbox-grid { grid-template-columns: 1fr; }
+
+      /* Mobile nav */
+      .mobile-nav {
+        display: flex !important;
+      }
+    }
+
+    .mobile-nav {
+      display: none;
+      position: fixed;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1a1a1a;
+      border-radius: 999px;
+      padding: 6px 8px;
+      gap: 2px;
+      z-index: 100;
+      box-shadow: 0 8px 32px rgba(0,0,0,.18);
+    }
+
+    .mobile-nav button {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+      color: rgba(255,255,255,.5);
+      border: none;
+      background: none;
+      font-family: var(--font-sans);
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .mobile-nav button:hover { color: rgba(255,255,255,.8); }
+    .mobile-nav button.active { background: var(--forest); color: white; }
+    .mobile-nav button svg { width: 18px; height: 18px; fill: currentColor; }
+    .mobile-nav button .mob-label { display: none; }
+    .mobile-nav button.active .mob-label { display: inline; }
+
+    /* Scrollbar */
+    .main-content::-webkit-scrollbar { width: 6px; }
+    .main-content::-webkit-scrollbar-track { background: transparent; }
+    .main-content::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-logo">
+      <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+    </div>
+    <div class="topbar-title">Nesso <span>· Caseworker</span></div>
+  </div>
+  <div class="topbar-right">
+    <span class="topbar-name">Loading...</span>
+    <div class="avatar" onclick="logout()" style="cursor:pointer;" title="Click to logout">...</div>
+  </div>
+</div>
+
+<!-- SUCCESS TOAST -->
+<div class="success-toast" id="successToast">Household added successfully</div>
+
+<!-- APP LAYOUT -->
+<div class="app-layout">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-label">Navigation</div>
+    <button class="sidebar-item active" data-page="dashboard" onclick="switchPage('dashboard')">
+      <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+      Dashboard
+    </button>
+    <button class="sidebar-item" data-page="households" onclick="switchPage('households')">
+      <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+      Households
+    </button>
+    <button class="sidebar-item" data-page="add" onclick="switchPage('add')">
+      <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+      Add Household
+    </button>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-label">Links</div>
+    <a href="voucher-landlord.html" class="sidebar-item" style="text-decoration:none;">
+      <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+      Landlord Portal
+    </a>
+    <div class="sidebar-divider"></div>
+    <button class="sidebar-item" onclick="logout()">
+      <svg viewBox="0 0 24 24"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
+      Logout
+    </button>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="main-content">
+
+    <!-- DASHBOARD -->
+    <div class="page-view active" id="page-dashboard">
+      <div class="section-bar">Dashboard</div>
+
+      <div class="summary-grid" id="summaryCards">
+        <!-- Filled by JS -->
+      </div>
+
+      <div class="activity-list" id="activityList">
+        <div class="activity-header">Recent Activity</div>
+        <!-- Filled by JS -->
+      </div>
+    </div>
+
+    <!-- HOUSEHOLDS -->
+    <div class="page-view" id="page-households">
+      <div class="section-bar">
+        <span>Households · <span id="householdCount">0</span> Total</span>
+      </div>
+      <table class="data-table" id="householdsTable">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Program</th>
+            <th>Bedroom</th>
+            <th>Voucher</th>
+            <th>Readiness</th>
+            <th>Docs</th>
+            <th>Stage</th>
+          </tr>
+        </thead>
+        <tbody id="householdsBody">
+          <!-- Filled by JS -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ADD HOUSEHOLD -->
+    <div class="page-view" id="page-add">
+      <div class="form-container">
+        <div class="form-title">Add Household</div>
+        <div class="form-subtitle">Enter voucher holder information for upstream verification before matching.</div>
+
+        <form id="addHouseholdForm" onsubmit="handleSubmit(event)">
+
+          <!-- VOUCHER INFORMATION -->
+          <div class="form-section">
+            <div class="form-section-title">Voucher Information</div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Voucher Program</label>
+                <select id="f-program" required>
+                  <option value="">Select program...</option>
+                  <option value="CityFHEPS">CityFHEPS</option>
+                  <option value="FHEPS">FHEPS</option>
+                  <option value="Section 8/HCV">Section 8/HCV</option>
+                  <option value="HASA">HASA</option>
+                  <option value="SOTA">SOTA</option>
+                  <option value="HPD">HPD</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Voucher Status</label>
+                <select id="f-voucherStatus" required>
+                  <option value="">Select status...</option>
+                  <option value="Active">Active</option>
+                  <option value="Expired">Expired</option>
+                  <option value="Pending Renewal">Pending Renewal</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Authorized Bedroom Size</label>
+                <select id="f-bedroomSize" required>
+                  <option value="">Select size...</option>
+                  <option value="Studio">Studio</option>
+                  <option value="1BR">1BR</option>
+                  <option value="2BR">2BR</option>
+                  <option value="3BR">3BR</option>
+                  <option value="4BR">4BR</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Voucher Expiration Date</label>
+                <input type="date" id="f-expirationDate">
+              </div>
+            </div>
+          </div>
+
+          <!-- HOUSEHOLD INFORMATION -->
+          <div class="form-section">
+            <div class="form-section-title">Household Information</div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Head of Household Name</label>
+                <input type="text" id="f-name" placeholder="Full name" required>
+              </div>
+              <div class="form-group">
+                <label>Household Members</label>
+                <input type="number" id="f-members" min="1" max="12" placeholder="Number of members" required>
+              </div>
+            </div>
+          </div>
+
+          <!-- FINANCIAL INFORMATION -->
+          <div class="form-section">
+            <div class="form-section-title">Financial Information</div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Employment Status</label>
+                <select id="f-employment" required>
+                  <option value="">Select status...</option>
+                  <option value="Employed">Employed</option>
+                  <option value="Unemployed">Unemployed</option>
+                  <option value="SSI/SSDI">SSI/SSDI</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Monthly Income ($)</label>
+                <input type="number" id="f-income" min="0" step="1" placeholder="0">
+              </div>
+            </div>
+            <div class="form-row triple">
+              <div class="form-group">
+                <label>SSI/SSDI Amount ($, optional)</label>
+                <input type="number" id="f-ssi" min="0" step="1" placeholder="0">
+              </div>
+              <div class="form-group">
+                <label>Anticipated Tenant Contribution ($)</label>
+                <input type="number" id="f-tenantContribution" min="0" step="1" placeholder="0">
+              </div>
+              <div class="form-group">
+                <label>Maximum Rent ($)</label>
+                <input type="number" id="f-maxRent" min="0" step="1" placeholder="Auto or manual">
+              </div>
+            </div>
+          </div>
+
+          <!-- DOCUMENTATION -->
+          <div class="form-section">
+            <div class="form-section-title">Documentation Checklist</div>
+            <div class="checkbox-grid">
+              <label class="checkbox-item"><input type="checkbox" id="doc-id" value="Valid ID"> Valid ID</label>
+              <label class="checkbox-item"><input type="checkbox" id="doc-income" value="Proof of Income"> Proof of Income</label>
+              <label class="checkbox-item"><input type="checkbox" id="doc-voucher" value="Voucher Letter"> Voucher Letter</label>
+              <label class="checkbox-item"><input type="checkbox" id="doc-background" value="Background Check"> Background Check</label>
+              <label class="checkbox-item"><input type="checkbox" id="doc-credit" value="Credit Report"> Credit Report</label>
+              <label class="checkbox-item"><input type="checkbox" id="doc-housing" value="Housing History"> Housing History</label>
+              <label class="checkbox-item"><input type="checkbox" id="doc-approval" value="Program Approval Letter"> Program Approval Letter</label>
+            </div>
+          </div>
+
+          <!-- PREFERENCES -->
+          <div class="form-section">
+            <div class="form-section-title">Placement Preferences</div>
+            <div class="form-group" style="margin-bottom:16px;">
+              <label>Preferred Neighborhoods</label>
+              <div class="tag-select" id="neighborhoodTags">
+                <!-- Filled by JS -->
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Move-in Timeline</label>
+                <select id="f-timeline">
+                  <option value="Immediate">Immediate</option>
+                  <option value="Within 30 days">Within 30 days</option>
+                  <option value="Within 60 days">Within 60 days</option>
+                  <option value="Flexible">Flexible</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Accessibility Requirements</label>
+                <div style="display:flex;align-items:center;gap:10px;margin-top:4px;">
+                  <input type="checkbox" id="f-accessibilityCheck" style="width:16px;height:16px;accent-color:var(--forest);">
+                  <input type="text" id="f-accessibilityText" placeholder="Describe if needed" style="flex:1;">
+                </div>
+              </div>
+            </div>
+            <div class="form-row single">
+              <div class="form-group">
+                <label>Caseworker Notes</label>
+                <textarea id="f-notes" placeholder="Additional context, special circumstances, etc."></textarea>
+              </div>
+            </div>
+          </div>
+
+          <button type="submit" class="btn-submit">Add Household</button>
+        </form>
+      </div>
+    </div>
+
+  </div><!-- /main-content -->
+</div><!-- /app-layout -->
+
+<!-- MOBILE NAV -->
+<div class="mobile-nav">
+  <button class="active" data-page="dashboard" onclick="switchPage('dashboard')">
+    <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+    <span class="mob-label">Dashboard</span>
+  </button>
+  <button data-page="households" onclick="switchPage('households')">
+    <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+    <span class="mob-label">Households</span>
+  </button>
+  <button data-page="add" onclick="switchPage('add')">
+    <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+    <span class="mob-label">Add</span>
+  </button>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <span>&copy; 2026 Nessoo &mdash; Caseworker Portal</span>
+  <a href="voucher-landlord.html">Landlord Portal &rarr;</a>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/js/supabase-client.js"></script>
+<script src="/js/auth-guard.js"></script>
+<script>
+// ═══════════════════════════════════════════════
+// CONSTANTS
+// ═══════════════════════════════════════════════
+const ALL_DOCS = [
+  'Valid ID', 'Proof of Income', 'Voucher Letter',
+  'Background Check', 'Credit Report', 'Housing History', 'Program Approval Letter'
+];
+
+const NEIGHBORHOODS = [
+  'Upper West Side', 'Long Island City', 'Greenpoint', 'Greenwich Village',
+  'East Village', 'Williamsburg', 'Brooklyn Heights', 'Park Slope',
+  'Astoria', 'Harlem', 'Washington Heights', 'Inwood',
+  'South Bronx', 'Jamaica, Queens', 'Flatbush'
+];
+
+// ═══════════════════════════════════════════════
+// DATA MANAGEMENT
+// ═══════════════════════════════════════════════
+async function loadHouseholds() {
+  const { data, error } = await supabase
+    .from('households')
+    .select('*')
+    .order('created_at', { ascending: false });
+  if (error) { console.error(error); return []; }
+  return data;
+}
+
+// ═══════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════
+function showToast(msg) {
+  const toast = document.getElementById('successToast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+function getReadiness(hh) {
+  if (hh.stage === 'Matched') return 'Matched';
+  const docs = hh.documents || [];
+  const docsComplete = docs.length === ALL_DOCS.length;
+  const voucherActive = hh.voucher_status === 'Active';
+  if (docsComplete && voucherActive) return 'Ready';
+  if (docs.length < 3 || !voucherActive) return 'Incomplete';
+  return 'Pending';
+}
+
+function getDocsStatus(hh) {
+  const docs = hh.documents || [];
+  return docs.length + '/' + ALL_DOCS.length;
+}
+
+function getDocsBadgeClass(hh) {
+  const docs = hh.documents || [];
+  if (docs.length === ALL_DOCS.length) return 'ready';
+  if (docs.length >= 4) return 'pending';
+  return 'incomplete';
+}
+
+function getVoucherBadgeClass(status) {
+  if (status === 'Active') return 'active';
+  if (status === 'Expired') return 'expired';
+  return 'renewal';
+}
+
+function getStageBadgeClass(stage) {
+  if (stage === 'Ready') return 'ready';
+  if (stage === 'Matched') return 'matched';
+  if (stage === 'Pending') return 'pending';
+  return 'incomplete';
+}
+
+function formatCurrency(n) {
+  if (!n && n !== 0) return '--';
+  return '$' + Number(n).toLocaleString();
+}
+
+// ═══════════════════════════════════════════════
+// RENDER DASHBOARD
+// ═══════════════════════════════════════════════
+async function renderDashboard() {
+  const households = await loadHouseholds();
+  const total = households.length;
+  const ready = households.filter(h => getReadiness(h) === 'Ready').length;
+  const pending = households.filter(h => getReadiness(h) === 'Pending' || getReadiness(h) === 'Incomplete').length;
+  const matched = households.filter(h => h.stage === 'Matched').length;
+
+  document.getElementById('summaryCards').innerHTML = `
+    <div class="summary-card highlight" onclick="switchPage('households')" style="cursor:pointer;">
+      <div class="card-label">Total Households</div>
+      <div class="card-value">${total}</div>
+      <div class="card-sub">entered in system</div>
+    </div>
+    <div class="summary-card" onclick="switchPage('households')" style="cursor:pointer;">
+      <div class="card-label">Ready for Placement</div>
+      <div class="card-value" style="color:var(--forest);">${ready}</div>
+      <div class="card-sub">all docs verified</div>
+    </div>
+    <div class="summary-card" onclick="switchPage('households')" style="cursor:pointer;">
+      <div class="card-label">Pending / Incomplete</div>
+      <div class="card-value" style="color:var(--amber);">${pending}</div>
+      <div class="card-sub">missing documentation</div>
+    </div>
+    <div class="summary-card" onclick="switchPage('households')" style="cursor:pointer;">
+      <div class="card-label">Matched</div>
+      <div class="card-value" style="color:var(--forest);">${matched}</div>
+      <div class="card-sub">placed with landlord</div>
+    </div>
+  `;
+
+  // Recent activity
+  const activityContainer = document.getElementById('activityList');
+  const sorted = [...households].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  const recent = sorted.slice(0, 5);
+
+  let activityHtml = '<div class="activity-header">Recent Activity</div>';
+  recent.forEach(hh => {
+    const readiness = getReadiness(hh);
+    const dotClass = readiness === 'Ready' ? 'green' : readiness === 'Pending' ? 'amber' : 'coral';
+    const action = readiness === 'Ready' ? 'ready for placement' : readiness === 'Pending' ? 'pending documents' : 'incomplete profile';
+    const displayDate = hh.created_at ? hh.created_at.slice(0, 10) : '';
+    activityHtml += `
+      <div class="activity-item" onclick="goToHousehold('${hh.id}')">
+        <span class="activity-dot ${dotClass}"></span>
+        <span class="activity-text"><strong>${hh.head_of_household}</strong> &mdash; ${hh.voucher_program}, ${hh.authorized_bedrooms} &middot; ${action}</span>
+        <span class="activity-time">${displayDate}</span>
+        <span style="color:var(--text-muted);font-size:16px;">&rsaquo;</span>
+      </div>
+    `;
+  });
+
+  activityContainer.innerHTML = activityHtml;
+}
+
+// ═══════════════════════════════════════════════
+// RENDER HOUSEHOLDS TABLE
+// ═══════════════════════════════════════════════
+async function renderHouseholds() {
+  const households = await loadHouseholds();
+  document.getElementById('householdCount').textContent = households.length;
+
+  const tbody = document.getElementById('householdsBody');
+  let html = '';
+
+  households.forEach((hh, idx) => {
+    const readiness = getReadiness(hh);
+    const docs = hh.documents || [];
+    const neighborhoods = hh.preferred_neighborhoods || [];
+    const members = hh.household_members || 1;
+
+    html += `
+      <tr onclick="toggleExpand(${idx})">
+        <td>
+          <div class="hh-name">${hh.head_of_household}</div>
+          <div class="hh-sub">${members} member${members > 1 ? 's' : ''}</div>
+        </td>
+        <td><span class="program-badge">${hh.voucher_program}</span></td>
+        <td>${hh.authorized_bedrooms}</td>
+        <td><span class="status-badge ${getVoucherBadgeClass(hh.voucher_status)}">${hh.voucher_status.toUpperCase()}</span></td>
+        <td><span class="status-badge ${getStageBadgeClass(readiness)}">${readiness.toUpperCase()}</span></td>
+        <td><span class="status-badge ${getDocsBadgeClass(hh)}">${getDocsStatus(hh)}</span></td>
+        <td><span class="status-badge ${getStageBadgeClass(hh.stage)}">${hh.stage.toUpperCase()}</span></td>
+      </tr>
+      <tr class="expanded-row" id="expand-${idx}">
+        <td colspan="7">
+          <div class="expanded-detail-grid">
+            <div>
+              <div class="detail-group">
+                <div class="detail-label">Monthly Income</div>
+                <div class="detail-value">${formatCurrency(hh.monthly_income)}</div>
+              </div>
+              <div class="detail-group">
+                <div class="detail-label">SSI/SSDI</div>
+                <div class="detail-value">${hh.ssi_ssdi_amount ? formatCurrency(hh.ssi_ssdi_amount) : 'N/A'}</div>
+              </div>
+              <div class="detail-group">
+                <div class="detail-label">Tenant Contribution</div>
+                <div class="detail-value">${formatCurrency(hh.tenant_contribution)}</div>
+              </div>
+              <div class="detail-group">
+                <div class="detail-label">Max Rent</div>
+                <div class="detail-value">${formatCurrency(hh.max_rent)}</div>
+              </div>
+            </div>
+            <div>
+              <div class="detail-group">
+                <div class="detail-label">Employment</div>
+                <div class="detail-value">${hh.employment_status}</div>
+              </div>
+              <div class="detail-group">
+                <div class="detail-label">Move-in Timeline</div>
+                <div class="detail-value">${hh.move_in_timeline}</div>
+              </div>
+              <div class="detail-group">
+                <div class="detail-label">Voucher Expires</div>
+                <div class="detail-value">${hh.voucher_expiration || 'N/A'}</div>
+              </div>
+              ${hh.accessibility_needed ? `<div class="detail-group"><div class="detail-label">Accessibility</div><div class="detail-value">${hh.accessibility_notes}</div></div>` : ''}
+            </div>
+            <div>
+              <div class="detail-group">
+                <div class="detail-label">Documentation</div>
+                <div class="doc-list">
+                  ${ALL_DOCS.map(d => `<span class="doc-tag ${docs.includes(d) ? 'complete' : 'missing'}" onclick="event.stopPropagation();toggleDoc('${hh.id}','${d}',this)">${d}</span>`).join('')}
+                </div>
+              </div>
+              <div class="detail-group" style="margin-top:12px;">
+                <div class="detail-label">Preferred Neighborhoods</div>
+                <div class="neighborhoods-list">
+                  ${neighborhoods.map(n => `<span class="neighborhood-tag">${n}</span>`).join('')}
+                </div>
+              </div>
+              ${hh.notes ? `<div class="detail-group" style="margin-top:12px;"><div class="detail-label">Notes</div><div class="detail-value" style="font-size:13px;color:var(--text-secondary);">${hh.notes}</div></div>` : ''}
+            </div>
+          </div>
+        </td>
+      </tr>
+    `;
+  });
+
+  tbody.innerHTML = html;
+}
+
+function toggleExpand(idx) {
+  const row = document.getElementById('expand-' + idx);
+  row.classList.toggle('active');
+}
+
+async function goToHousehold(id) {
+  // Switch to households view
+  switchPage('households');
+  // Find the index of the household
+  const households = await loadHouseholds();
+  const idx = households.findIndex(h => h.id === id);
+  if (idx > -1) {
+    // Close any open rows first
+    document.querySelectorAll('.expanded-row.active').forEach(r => r.classList.remove('active'));
+    // Open this one
+    setTimeout(() => {
+      const row = document.getElementById('expand-' + idx);
+      if (row) {
+        row.classList.add('active');
+        row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 100);
+  }
+}
+
+async function toggleDoc(householdId, docName, el) {
+  // Fetch current household
+  const { data: hh, error } = await supabase
+    .from('households')
+    .select('documents, voucher_status, stage')
+    .eq('id', householdId)
+    .single();
+  if (error || !hh) return;
+
+  let docs = hh.documents || [];
+  const idx = docs.indexOf(docName);
+  if (idx > -1) {
+    docs.splice(idx, 1);
+    el.classList.remove('complete');
+    el.classList.add('missing');
+  } else {
+    docs.push(docName);
+    el.classList.remove('missing');
+    el.classList.add('complete');
+  }
+
+  // Calculate new stage
+  const docsComplete = docs.length === ALL_DOCS.length;
+  const voucherActive = hh.voucher_status === 'Active';
+  let stage = hh.stage;
+  if (stage !== 'Matched') {
+    stage = docsComplete && voucherActive ? 'Ready' : docs.length < 3 ? 'Incomplete' : 'Pending';
+  }
+
+  await supabase.from('households').update({ documents: docs, stage }).eq('id', householdId);
+  await renderDashboard();
+}
+
+// ═══════════════════════════════════════════════
+// NEIGHBORHOOD TAGS
+// ═══════════════════════════════════════════════
+let selectedNeighborhoods = [];
+
+function renderNeighborhoodTags() {
+  const container = document.getElementById('neighborhoodTags');
+  container.innerHTML = NEIGHBORHOODS.map(n =>
+    `<button type="button" class="tag-option ${selectedNeighborhoods.includes(n) ? 'selected' : ''}" onclick="toggleNeighborhood('${n}', this)">${n}</button>`
+  ).join('');
+}
+
+function toggleNeighborhood(name, el) {
+  const idx = selectedNeighborhoods.indexOf(name);
+  if (idx > -1) {
+    selectedNeighborhoods.splice(idx, 1);
+    el.classList.remove('selected');
+  } else {
+    selectedNeighborhoods.push(name);
+    el.classList.add('selected');
+  }
+}
+
+// ═══════════════════════════════════════════════
+// FORM SUBMIT
+// ═══════════════════════════════════════════════
+async function handleSubmit(e) {
+  e.preventDefault();
+
+  const docs = [];
+  if (document.getElementById('doc-id').checked) docs.push('Valid ID');
+  if (document.getElementById('doc-income').checked) docs.push('Proof of Income');
+  if (document.getElementById('doc-voucher').checked) docs.push('Voucher Letter');
+  if (document.getElementById('doc-background').checked) docs.push('Background Check');
+  if (document.getElementById('doc-credit').checked) docs.push('Credit Report');
+  if (document.getElementById('doc-housing').checked) docs.push('Housing History');
+  if (document.getElementById('doc-approval').checked) docs.push('Program Approval Letter');
+
+  const voucherStatus = document.getElementById('f-voucherStatus').value;
+  const docsComplete = docs.length === ALL_DOCS.length;
+  const voucherActive = voucherStatus === 'Active';
+
+  let stage = 'Incomplete';
+  if (docsComplete && voucherActive) stage = 'Ready';
+  else if (docs.length >= 3) stage = 'Pending';
+
+  const { error } = await supabase.from('households').insert({
+    caseworker_id: currentUser.id,
+    organization_id: currentUser.organizationId,
+    head_of_household: document.getElementById('f-name').value,
+    voucher_program: document.getElementById('f-program').value,
+    authorized_bedrooms: document.getElementById('f-bedroomSize').value,
+    voucher_status: voucherStatus,
+    household_members: parseInt(document.getElementById('f-members').value) || 1,
+    employment_status: document.getElementById('f-employment').value,
+    monthly_income: parseInt(document.getElementById('f-income').value) || 0,
+    ssi_ssdi_amount: parseInt(document.getElementById('f-ssi').value) || 0,
+    tenant_contribution: parseInt(document.getElementById('f-tenantContribution').value) || 0,
+    max_rent: parseInt(document.getElementById('f-maxRent').value) || 0,
+    documents: docs,
+    voucher_expiration: document.getElementById('f-expirationDate').value || null,
+    preferred_neighborhoods: [...selectedNeighborhoods],
+    move_in_timeline: document.getElementById('f-timeline').value,
+    accessibility_needed: document.getElementById('f-accessibilityCheck').checked,
+    accessibility_notes: document.getElementById('f-accessibilityText').value,
+    notes: document.getElementById('f-notes').value,
+    stage: stage
+  });
+
+  if (error) { showToast('Error: ' + error.message); return; }
+
+  // Reset form
+  document.getElementById('addHouseholdForm').reset();
+  selectedNeighborhoods = [];
+  renderNeighborhoodTags();
+
+  // Show toast
+  showToast('Household added successfully');
+
+  // Navigate to households
+  setTimeout(() => switchPage('households'), 500);
+}
+
+// ═══════════════════════════════════════════════
+// PAGE SWITCHING
+// ═══════════════════════════════════════════════
+function switchPage(page) {
+  // Sidebar
+  document.querySelectorAll('.sidebar-item[data-page]').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.page === page);
+  });
+
+  // Mobile nav
+  document.querySelectorAll('.mobile-nav button[data-page]').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.page === page);
+  });
+
+  // Pages
+  document.querySelectorAll('.page-view').forEach(p => {
+    p.classList.toggle('active', p.id === 'page-' + page);
+  });
+
+  // Refresh data
+  if (page === 'dashboard') renderDashboard();
+  if (page === 'households') renderHouseholds();
+
+  // Scroll to top
+  document.querySelector('.main-content').scrollTop = 0;
+}
+
+// ═══════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════
+(async () => {
+  await initAuth('caseworker');
+  // Update topbar with user info
+  document.querySelector('.topbar-name').textContent = currentUser.fullName || currentUser.email;
+  const initials = currentUser.fullName ? currentUser.fullName.split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2) : '?';
+  document.querySelector('.avatar').textContent = initials;
+
+  await renderDashboard();
+  await renderHouseholds();
+  renderNeighborhoodTags();
+})();
+</script>
+
+</body>
+</html>
