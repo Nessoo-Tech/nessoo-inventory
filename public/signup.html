@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nessoo · Sign up</title>
+  <link rel="icon" type="image/png" href="https://www.vryfiexchange.com/favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #faf8f4;
+      --card: #ffffff;
+      --border: rgba(0,0,0,.07);
+      --border-strong: rgba(0,0,0,.12);
+      --text: #1a1a1a;
+      --text-secondary: #6b6560;
+      --text-muted: #a09890;
+      --forest: #1b6b4a;
+      --forest-dark: #14503a;
+      --forest-light: #e6f2ec;
+      --coral: #d4644a;
+      --font-sans: 'Inter', -apple-system, sans-serif;
+      --font-serif: 'DM Serif Display', Georgia, serif;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .auth-wrapper {
+      width: 100%;
+      max-width: 420px;
+    }
+
+    .brand {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .brand-name {
+      font-family: var(--font-serif);
+      font-size: 22px;
+      color: var(--forest);
+      letter-spacing: -0.02em;
+    }
+
+    .auth-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 40px 36px;
+      box-shadow: 0 1px 3px rgba(0,0,0,.04);
+    }
+
+    .auth-card h1 {
+      font-family: var(--font-serif);
+      font-size: 28px;
+      font-weight: 400;
+      margin-bottom: 6px;
+      letter-spacing: -0.02em;
+    }
+
+    .auth-card .subtitle {
+      color: var(--text-secondary);
+      font-size: 14px;
+      margin-bottom: 28px;
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 11px 14px;
+      font-family: var(--font-sans);
+      font-size: 15px;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-md);
+      background: var(--bg);
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .form-group input:focus {
+      border-color: var(--forest);
+      box-shadow: 0 0 0 3px rgba(27,107,74,.1);
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: 12px;
+      font-family: var(--font-sans);
+      font-size: 15px;
+      font-weight: 600;
+      color: #fff;
+      background: var(--forest);
+      border: none;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: background 0.15s;
+      margin-top: 6px;
+    }
+
+    .btn-primary:hover {
+      background: var(--forest-dark);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .error-msg, .success-msg {
+      display: none;
+      font-size: 13px;
+      padding: 10px 14px;
+      border-radius: var(--radius-md);
+      margin-bottom: 18px;
+    }
+
+    .error-msg {
+      background: rgba(212,100,74,.08);
+      color: var(--coral);
+    }
+
+    .success-msg {
+      background: rgba(27,107,74,.08);
+      color: var(--forest);
+    }
+
+    .error-msg.visible, .success-msg.visible {
+      display: block;
+    }
+
+    .auth-footer {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .auth-footer a {
+      color: var(--forest);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .auth-footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="auth-wrapper">
+    <div class="brand">
+      <span class="brand-name">Nessoo</span>
+    </div>
+
+    <div class="auth-card">
+      <h1>Create your account</h1>
+      <p class="subtitle">You need an invitation to sign up</p>
+
+      <div id="error" class="error-msg"></div>
+      <div id="success" class="success-msg"></div>
+
+      <form id="signupForm" onsubmit="handleSignup(event)">
+        <div class="form-group">
+          <label for="fullName">Full name</label>
+          <input type="text" id="fullName" required autocomplete="name" placeholder="Jane Doe">
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" required autocomplete="email" placeholder="you@example.com">
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" required autocomplete="new-password" minlength="6" placeholder="Min. 6 characters">
+        </div>
+
+        <button type="submit" class="btn-primary" id="submitBtn">Create account</button>
+      </form>
+
+      <div class="auth-footer">
+        Already have an account? <a href="/login.html">Sign in</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/supabase-client.js"></script>
+  <script>
+    async function handleSignup(e) {
+      e.preventDefault();
+      const errorEl = document.getElementById('error');
+      const successEl = document.getElementById('success');
+      const submitBtn = document.getElementById('submitBtn');
+      const fullName = document.getElementById('fullName').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+
+      errorEl.classList.remove('visible');
+      successEl.classList.remove('visible');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Creating account...';
+
+      try {
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: { full_name: fullName }
+          }
+        });
+
+        if (error) {
+          showError(error.message);
+          return;
+        }
+
+        // Show success and redirect
+        successEl.textContent = 'Account created. Redirecting...';
+        successEl.classList.add('visible');
+        document.getElementById('signupForm').style.display = 'none';
+
+        // Fetch profile role for redirect (profile created via Supabase trigger)
+        setTimeout(async () => {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session) {
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('role')
+              .eq('id', session.user.id)
+              .single();
+
+            const portals = {
+              caseworker: '/voucher-caseworker.html',
+              landlord: '/voucher-landlord.html',
+              admin: '/admin.html'
+            };
+
+            window.location.href = (profile && portals[profile.role]) || '/voucher-caseworker.html';
+          } else {
+            // Email confirmation may be required
+            successEl.textContent = 'Account created. Check your email to confirm, then sign in.';
+          }
+        }, 2000);
+      } catch (err) {
+        showError('Something went wrong. Please try again.');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Create account';
+      }
+    }
+
+    function showError(msg) {
+      const errorEl = document.getElementById('error');
+      errorEl.textContent = msg;
+      errorEl.classList.add('visible');
+    }
+
+    // If already logged in, redirect
+    (async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        window.location.href = '/login.html';
+      }
+    })();
+  </script>
+</body>
+</html>

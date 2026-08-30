@@ -1,0 +1,1738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nesso · Owner</title>
+  <link rel="icon" type="image/png" href="https://www.vryfiexchange.com/favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=DM+Serif+Display&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #faf8f4;
+      --bg-warm: #f5f0e8;
+      --card: #ffffff;
+      --card-hover: #fefdfb;
+      --border: rgba(0,0,0,.07);
+      --border-strong: rgba(0,0,0,.12);
+      --text: #1a1a1a;
+      --text-secondary: #6b6560;
+      --text-muted: #a09890;
+      --forest: #1b6b4a;
+      --forest-dark: #14503a;
+      --forest-light: #e6f2ec;
+      --forest-soft: rgba(27,107,74,.08);
+      --green: #1b6b4a;
+      --green-soft: rgba(27,107,74,.10);
+      --amber: #c4830a;
+      --amber-soft: rgba(196,131,10,.10);
+      --teal: #0e8a6f;
+      --teal-soft: rgba(14,138,111,.10);
+      --coral: #d4644a;
+      --coral-soft: rgba(212,100,74,.10);
+      --gray: #9a9490;
+      --gray-soft: rgba(154,148,144,.10);
+      --blue: #2d6cb4;
+      --blue-soft: rgba(45,108,180,.10);
+      --nav-height: 72px;
+      --topbar-height: 56px;
+      --font-sans: 'Inter', -apple-system, sans-serif;
+      --font-serif: 'DM Serif Display', Georgia, serif;
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-xl: 20px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+      overflow: hidden;
+      height: 100vh;
+    }
+
+    .app-shell {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* TOP BAR */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 28px;
+      height: var(--topbar-height);
+      flex-shrink: 0;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .topbar-logo {
+      width: 28px; height: 28px;
+      background: var(--forest);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .topbar-logo svg { width: 14px; height: 14px; fill: white; }
+
+    .topbar-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: -.01em;
+    }
+
+    .topbar-title span { color: var(--text-muted); font-weight: 400; }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .portfolio-pill {
+      padding: 6px 16px;
+      border: 1px solid var(--border-strong);
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .avatar {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: var(--forest);
+      color: white;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700;
+    }
+
+    /* PAGE CONTENT */
+    .page-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px 28px;
+      padding-bottom: calc(var(--nav-height) + 24px);
+    }
+
+    /* SECTION HEADER BAR */
+    .section-bar {
+      background: var(--forest-dark);
+      color: var(--forest-light);
+      padding: 12px 20px;
+      border-radius: var(--radius-md);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .serif-heading {
+      font-family: var(--font-serif);
+      font-size: 28px;
+      font-weight: 400;
+      color: var(--text);
+      line-height: 1.2;
+      margin-bottom: 4px;
+    }
+
+    .mono-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: var(--forest);
+    }
+
+    /* BOTTOM NAV */
+    .bottom-nav {
+      position: fixed;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1a1a1a;
+      border-radius: 999px;
+      padding: 6px 8px;
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      z-index: 100;
+      box-shadow: 0 8px 32px rgba(0,0,0,.18);
+    }
+
+    .nav-item {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: all .2s;
+      color: rgba(255,255,255,.5);
+      border: none;
+      background: none;
+      font-family: var(--font-sans);
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .nav-item:hover { color: rgba(255,255,255,.8); }
+
+    .nav-item.active {
+      background: var(--forest);
+      color: white;
+    }
+
+    .nav-item svg {
+      width: 18px; height: 18px;
+      fill: currentColor;
+    }
+
+    .nav-item .nav-label { display: none; }
+    .nav-item.active .nav-label { display: inline; }
+
+    .nav-badge {
+      position: absolute;
+      top: 4px; right: 6px;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: var(--coral);
+      color: white;
+      font-size: 9px;
+      font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    /* STATUS BADGE */
+    .status-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+
+    .status-badge.active, .status-badge.green { color: var(--forest); background: var(--green-soft); }
+    .status-badge.amber, .status-badge.pending { color: var(--amber); background: var(--amber-soft); }
+    .status-badge.teal { color: var(--teal); background: var(--teal-soft); }
+    .status-badge.coral, .status-badge.failed { color: var(--coral); background: var(--coral-soft); }
+    .status-badge.gray { color: var(--gray); background: var(--gray-soft); }
+    .status-badge.blue { color: var(--blue); background: var(--blue-soft); }
+
+    /* BUILDING GROUPS */
+    .building-group {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    .building-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 4px;
+    }
+
+    .building-name {
+      font-family: var(--font-serif);
+      font-size: 20px;
+      color: var(--text);
+    }
+
+    .building-address {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+
+    .building-occupancy { text-align: right; }
+    .building-occupancy .pct { font-size: 20px; font-weight: 700; color: var(--text); }
+    .building-occupancy .label { font-size: 11px; color: var(--text-muted); text-transform: lowercase; }
+
+    .occupancy-bar {
+      height: 4px;
+      background: var(--bg-warm);
+      border-radius: 2px;
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+
+    .occupancy-bar-fill {
+      height: 100%;
+      background: var(--forest);
+      border-radius: 2px;
+      transition: width .4s ease;
+    }
+
+    .unit-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 12px;
+    }
+
+    .unit-card {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      cursor: pointer;
+      transition: all .15s;
+      position: relative;
+      background: var(--card);
+    }
+
+    .unit-card:hover {
+      border-color: var(--border-strong);
+      box-shadow: 0 2px 8px rgba(0,0,0,.04);
+    }
+
+    .unit-card.expanded {
+      border-color: var(--forest);
+      box-shadow: 0 2px 12px var(--forest-soft);
+    }
+
+    .unit-card-label {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .unit-card-info {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+    }
+
+    .unit-card-status {
+      font-size: 11px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .status-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      position: absolute;
+      top: 14px; right: 14px;
+    }
+
+    .status-dot.green { background: var(--forest); }
+    .status-dot.amber { background: var(--amber); }
+    .status-dot.coral { background: var(--coral); }
+    .status-dot.gray { background: var(--gray); }
+
+    .unit-card-status.green { color: var(--forest); }
+    .unit-card-status.amber { color: var(--amber); }
+    .unit-card-status.coral { color: var(--coral); }
+    .unit-card-status.gray { color: var(--gray); }
+
+    .unit-card-details {
+      display: none;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .unit-card.expanded .unit-card-details { display: block; }
+
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 3px 0;
+    }
+
+    .detail-label {
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-size: 9px;
+      letter-spacing: .1em;
+    }
+
+    .detail-value {
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    .program-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 6px;
+    }
+
+    .program-tag {
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 600;
+      background: var(--forest-soft);
+      color: var(--forest);
+      letter-spacing: .02em;
+    }
+
+    /* UNIT DETAIL PAGE */
+    .unit-detail-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      cursor: pointer;
+      padding: 8px 0;
+      margin-bottom: 16px;
+      background: none;
+      border: none;
+      font-family: var(--font-sans);
+      transition: color .15s;
+    }
+
+    .unit-detail-back:hover { color: var(--forest); }
+
+    .unit-detail-header {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      margin-bottom: 24px;
+    }
+
+    .unit-detail-title {
+      font-family: var(--font-serif);
+      font-size: 26px;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .unit-detail-sub {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 16px;
+    }
+
+    .unit-detail-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .unit-detail-stat .stat-label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .unit-detail-stat .stat-value {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .unit-detail-programs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .unit-detail-matches-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      color: var(--forest);
+      margin-bottom: 12px;
+    }
+
+    /* ADD UNIT FORM */
+    .form-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      max-width: 600px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      font-family: var(--font-sans);
+      color: var(--text);
+      background: var(--bg);
+      outline: none;
+      transition: border-color .15s;
+    }
+
+    .form-input:focus {
+      border-color: var(--forest);
+      box-shadow: 0 0 0 3px var(--forest-soft);
+    }
+
+    .form-input::placeholder { color: var(--text-muted); }
+
+    textarea.form-input {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .form-row-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px;
+    }
+
+    .btn-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .btn-option {
+      padding: 8px 16px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      background: transparent;
+      cursor: pointer;
+      font-family: var(--font-sans);
+      transition: all .15s;
+    }
+
+    .btn-option:hover {
+      border-color: var(--border-strong);
+    }
+
+    .btn-option.selected {
+      background: var(--forest-soft);
+      border-color: var(--forest);
+      color: var(--forest);
+      font-weight: 600;
+    }
+
+    .checkbox-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .checkbox-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-size: 13px;
+      color: var(--text-secondary);
+      transition: all .15s;
+      user-select: none;
+    }
+
+    .checkbox-item:hover { border-color: var(--border-strong); }
+
+    .checkbox-item.checked {
+      background: var(--forest-soft);
+      border-color: var(--forest);
+      color: var(--forest);
+      font-weight: 600;
+    }
+
+    .checkbox-item input { display: none; }
+
+    .btn-submit {
+      padding: 12px 28px;
+      background: var(--forest);
+      color: white;
+      border: none;
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: var(--font-sans);
+      transition: background .15s;
+    }
+
+    .btn-submit:hover { background: var(--forest-dark); }
+
+    /* MATCHES VIEW */
+    .match-unit-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+
+    .match-unit-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .match-unit-info h3 {
+      font-family: var(--font-serif);
+      font-size: 18px;
+      color: var(--text);
+      margin-bottom: 2px;
+    }
+
+    .match-unit-info .sub {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .match-unit-meta {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .match-count {
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      background: var(--forest-soft);
+      color: var(--forest);
+    }
+
+    .match-list {
+      padding: 0;
+    }
+
+    .match-item {
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      transition: background .1s;
+      cursor: pointer;
+    }
+
+    .match-item:last-child { border-bottom: none; }
+
+    .match-item:hover { background: var(--bg); }
+
+    .match-item:active { background: rgba(27,107,74,.06); }
+
+    .match-avatar {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: var(--forest-light);
+      color: var(--forest);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .match-details {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .match-name {
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--text);
+      margin-bottom: 2px;
+    }
+
+    .match-meta {
+      font-size: 12px;
+      color: var(--text-muted);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .match-meta span {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .match-tags {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 4px;
+    }
+
+    .match-tag {
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: .02em;
+    }
+
+    .match-tag.program { background: var(--blue-soft); color: var(--blue); }
+    .match-tag.ready { background: var(--green-soft); color: var(--forest); }
+    .match-tag.docs { background: var(--amber-soft); color: var(--amber); }
+
+    .match-actions {
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .btn-small {
+      padding: 6px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: var(--font-sans);
+      transition: all .15s;
+      border: none;
+    }
+
+    .btn-small.accept {
+      background: var(--forest);
+      color: white;
+    }
+
+    .btn-small.accept:hover { background: var(--forest-dark); }
+
+    .btn-small.review {
+      background: transparent;
+      color: var(--forest);
+      border: 1px solid var(--forest);
+    }
+
+    .btn-small.review:hover { background: var(--forest-soft); }
+
+    .btn-small.pass {
+      background: transparent;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+
+    .btn-small.pass:hover { border-color: var(--coral); color: var(--coral); }
+
+    .no-matches {
+      padding: 24px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    /* EXPANDED MATCH DETAIL */
+    .match-expanded {
+      display: none;
+      padding: 12px 24px 16px;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .match-expanded.visible { display: block; }
+
+    .match-expanded-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 12px;
+    }
+
+    .match-expanded-item .exp-label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 2px;
+    }
+
+    .match-expanded-item .exp-value {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .match-expanded-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+    }
+
+    .doc-chip {
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .doc-chip.complete {
+      background: rgba(27,107,74,.1);
+      color: var(--forest);
+    }
+
+    .doc-chip.missing {
+      background: rgba(212,100,74,.1);
+      color: var(--coral);
+    }
+
+    .expand-arrow {
+      flex-shrink: 0;
+    }
+
+    .match-item:has(+ .match-expanded.visible) .expand-arrow {
+      transform: rotate(90deg);
+    }
+
+    /* PIPELINE TABLE */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+    }
+
+    .data-table th {
+      text-align: left;
+      padding: 12px 16px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    .data-table td {
+      padding: 14px 16px;
+      font-size: 14px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+
+    .data-table tr:last-child td { border-bottom: none; }
+
+    .stage-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+
+    .stage-accepted { color: var(--forest); background: var(--green-soft); }
+    .stage-submission { color: var(--blue); background: var(--blue-soft); }
+    .stage-inspection { color: var(--amber); background: var(--amber-soft); }
+    .stage-approval { color: var(--teal); background: var(--teal-soft); }
+    .stage-signed { color: var(--forest-dark); background: var(--forest-light); }
+
+    /* PAGE VISIBILITY */
+    .page-view { display: none; }
+    .page-view.active { display: block; }
+
+    /* FOOTER */
+    .page-footer {
+      text-align: center;
+      padding: 32px 0 16px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .page-footer a {
+      color: var(--forest);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .page-footer a:hover { text-decoration: underline; }
+
+    /* TOAST */
+    .toast {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: var(--forest-dark);
+      color: white;
+      padding: 12px 20px;
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      font-weight: 600;
+      z-index: 200;
+      opacity: 0;
+      transform: translateY(-10px);
+      transition: all .3s;
+      pointer-events: none;
+    }
+
+    .toast.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+      .unit-grid { grid-template-columns: 1fr; }
+      .form-row, .form-row-3 { grid-template-columns: 1fr; }
+      .match-item { flex-wrap: wrap; }
+      .match-actions { width: 100%; justify-content: flex-end; }
+      .match-expanded-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 480px) {
+      .page-content { padding: 16px; padding-bottom: calc(var(--nav-height) + 16px); }
+      .match-unit-header { flex-direction: column; gap: 8px; align-items: flex-start; }
+    }
+
+    /* Scrollbar */
+    .page-content::-webkit-scrollbar { width: 6px; }
+    .page-content::-webkit-scrollbar-track { background: transparent; }
+    .page-content::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-logo">
+        <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+      </div>
+      <div class="topbar-title">Nesso <span>· Owner</span></div>
+    </div>
+    <div class="topbar-right">
+      <button class="portfolio-pill">Riverside Holdings LLC</button>
+      <div class="avatar">R</div>
+    </div>
+  </div>
+
+  <!-- PAGE CONTENT -->
+  <div class="page-content" id="pageContent">
+
+    <!-- PORTFOLIO VIEW -->
+    <div class="page-view active" id="page-portfolio">
+      <div class="section-bar">
+        <span>PORTFOLIO · <span id="unitCount">0</span> UNITS</span>
+      </div>
+      <div id="portfolioCards"></div>
+      <div class="page-footer">
+        &copy; 2026 Nessoo &mdash; Owner Portal &middot; <a href="voucher-caseworker.html">Caseworker Portal</a>
+      </div>
+    </div>
+
+    <!-- UNIT DETAIL VIEW -->
+    <div class="page-view" id="page-unitdetail">
+      <button class="unit-detail-back" onclick="switchTab('portfolio')">&larr; Back to Portfolio</button>
+      <div id="unitDetailContent"></div>
+      <div class="page-footer">
+        &copy; 2026 Nessoo &mdash; Owner Portal &middot; <a href="voucher-caseworker.html">Caseworker Portal</a>
+      </div>
+    </div>
+
+    <!-- ADD UNIT VIEW -->
+    <div class="page-view" id="page-addunit">
+      <div class="section-bar"><span>ADD UNIT</span></div>
+      <div class="form-card">
+        <div class="form-group">
+          <label class="form-label">Building Address</label>
+          <input class="form-input" type="text" id="formAddress" placeholder="e.g. 412 Riverside Dr">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Unit Number</label>
+            <input class="form-input" type="text" id="formUnit" placeholder="e.g. 4B">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Monthly Rent ($)</label>
+            <input class="form-input" type="number" id="formRent" placeholder="2200">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Bedrooms</label>
+            <div class="btn-group" id="bedGroup">
+              <button class="btn-option" data-val="0" onclick="selectOption('bedGroup', this)">Studio</button>
+              <button class="btn-option" data-val="1" onclick="selectOption('bedGroup', this)">1</button>
+              <button class="btn-option" data-val="2" onclick="selectOption('bedGroup', this)">2</button>
+              <button class="btn-option" data-val="3" onclick="selectOption('bedGroup', this)">3</button>
+              <button class="btn-option" data-val="4" onclick="selectOption('bedGroup', this)">4</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Bathrooms</label>
+            <div class="btn-group" id="bathGroup">
+              <button class="btn-option" data-val="1" onclick="selectOption('bathGroup', this)">1</button>
+              <button class="btn-option" data-val="1.5" onclick="selectOption('bathGroup', this)">1.5</button>
+              <button class="btn-option" data-val="2" onclick="selectOption('bathGroup', this)">2</button>
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Accepted Voucher Programs</label>
+          <div class="checkbox-group" id="programGroup">
+            <label class="checkbox-item" onclick="toggleCheckbox(this)"><input type="checkbox" value="CityFHEPS">CityFHEPS</label>
+            <label class="checkbox-item" onclick="toggleCheckbox(this)"><input type="checkbox" value="FHEPS">FHEPS</label>
+            <label class="checkbox-item" onclick="toggleCheckbox(this)"><input type="checkbox" value="Section 8">Section 8 / HCV</label>
+            <label class="checkbox-item" onclick="toggleCheckbox(this)"><input type="checkbox" value="HASA">HASA</label>
+            <label class="checkbox-item" onclick="toggleCheckbox(this)"><input type="checkbox" value="SOTA">SOTA</label>
+            <label class="checkbox-item" onclick="toggleCheckbox(this)"><input type="checkbox" value="HPD">HPD</label>
+            <label class="checkbox-item" onclick="toggleCheckbox(this)"><input type="checkbox" value="Any">Any</label>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Inspection Status</label>
+            <select class="form-input" id="formInspection">
+              <option value="Pre-inspected">Pre-inspected</option>
+              <option value="Needs Inspection">Needs Inspection</option>
+              <option value="Scheduled">Scheduled</option>
+              <option value="Failed - Needs Repair">Failed - Needs Repair</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Availability Date</label>
+            <input class="form-input" type="date" id="formAvailDate">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Neighborhood</label>
+          <select class="form-input" id="formNeighborhood">
+            <option value="">Select neighborhood...</option>
+            <option>Upper West Side</option>
+            <option>Upper East Side</option>
+            <option>Harlem</option>
+            <option>Washington Heights</option>
+            <option>Inwood</option>
+            <option>Long Island City</option>
+            <option>Astoria</option>
+            <option>Greenpoint</option>
+            <option>Williamsburg</option>
+            <option>Bushwick</option>
+            <option>Bedford-Stuyvesant</option>
+            <option>Crown Heights</option>
+            <option>East New York</option>
+            <option>Flatbush</option>
+            <option>Sunset Park</option>
+            <option>South Bronx</option>
+            <option>Fordham</option>
+            <option>East Tremont</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Owner Requirements / Notes</label>
+          <textarea class="form-input" id="formNotes" placeholder="Any special requirements or notes about this unit..."></textarea>
+        </div>
+        <button class="btn-submit" onclick="addUnit()">Add Unit</button>
+      </div>
+      <div class="page-footer">
+        &copy; 2026 Nessoo &mdash; Owner Portal &middot; <a href="voucher-caseworker.html">Caseworker Portal</a>
+      </div>
+    </div>
+
+    <!-- MATCHES VIEW -->
+    <div class="page-view" id="page-matches">
+      <div class="section-bar">
+        <span>MATCHES · PRE-VERIFIED RENTERS</span>
+      </div>
+      <p style="font-size:14px;color:var(--text-muted);margin-bottom:20px;">Voucher holders matched to your units based on bedroom size, rent range, neighborhood, and program. All renters are pre-verified by their caseworker.</p>
+      <div id="matchesContainer"></div>
+      <div class="page-footer">
+        &copy; 2026 Nessoo &mdash; Owner Portal &middot; <a href="voucher-caseworker.html">Caseworker Portal</a>
+      </div>
+    </div>
+
+    <!-- PIPELINE VIEW -->
+    <div class="page-view" id="page-pipeline">
+      <div class="section-bar"><span>PIPELINE</span></div>
+      <table class="data-table" id="pipelineTable">
+        <thead>
+          <tr>
+            <th>Household</th>
+            <th>Unit</th>
+            <th>Program</th>
+            <th>Stage</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody id="pipelineBody"></tbody>
+      </table>
+      <div id="pipelineEmpty" style="display:none;text-align:center;padding:40px;color:var(--text-muted);font-size:14px;">
+        No entries in pipeline yet. Accept matched renters to start.
+      </div>
+      <div class="page-footer">
+        &copy; 2026 Nessoo &mdash; Owner Portal &middot; <a href="voucher-caseworker.html">Caseworker Portal</a>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <div class="bottom-nav">
+    <button class="nav-item active" data-page="portfolio" onclick="switchTab('portfolio')">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zM6 20V4h7v5h5v11H6z"/></svg>
+      <span class="nav-label">Portfolio</span>
+    </button>
+    <button class="nav-item" data-page="addunit" onclick="switchTab('addunit')">
+      <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+      <span class="nav-label">Add Unit</span>
+    </button>
+    <button class="nav-item" data-page="matches" onclick="switchTab('matches')">
+      <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+      <span class="nav-label">Matches</span>
+      <span class="nav-badge" id="matchBadge" style="display:none;">0</span>
+    </button>
+    <button class="nav-item" data-page="pipeline" onclick="switchTab('pipeline')">
+      <svg viewBox="0 0 24 24"><path d="M3 17v2h6v-2H3zM3 5v2h10V5H3zm10 16v-2h8v-2h-8v-2h-2v6h2zM7 9v2H3v2h4v2h2V9H7zm14 4v-2H11v2h10zm-6-4h2V7h4V5h-4V3h-2v6z"/></svg>
+      <span class="nav-label">Pipeline</span>
+    </button>
+  </div>
+
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/js/supabase-client.js"></script>
+<script src="/js/auth-guard.js"></script>
+<script>
+// =============================================
+// DATA ACCESS (Supabase)
+// =============================================
+async function getUnits() {
+  const { data, error } = await supabase
+    .from('units')
+    .select('*')
+    .order('created_at', { ascending: false });
+  if (error) { console.error(error); return []; }
+  return data || [];
+}
+
+async function getMatchesForUnit(unitId) {
+  const { data, error } = await supabase.rpc('get_matches_for_unit', { p_unit_id: unitId });
+  if (error) { console.error(error); return []; }
+  return data || [];
+}
+
+async function getPipeline() {
+  const { data, error } = await supabase
+    .from('pipeline')
+    .select('*, households(head_of_household, voucher_program), units(building_address, unit_number)')
+    .order('created_at', { ascending: false });
+  if (error) { console.error(error); return []; }
+  return data || [];
+}
+
+// =============================================
+// TOAST
+// =============================================
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('visible');
+  setTimeout(() => t.classList.remove('visible'), 2500);
+}
+
+// =============================================
+// TAB SWITCHING
+// =============================================
+function switchTab(page) {
+  document.querySelectorAll('.nav-item').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.page === page);
+  });
+  document.querySelectorAll('.page-view').forEach(p => {
+    p.classList.toggle('active', p.id === 'page-' + page);
+  });
+  document.getElementById('pageContent').scrollTop = 0;
+
+  if (page === 'portfolio') renderPortfolio();
+  if (page === 'matches') renderMatches();
+  if (page === 'pipeline') renderPipeline();
+  updateMatchBadge();
+}
+
+async function updateMatchBadge() {
+  const units = await getUnits();
+  let totalMatches = 0;
+  for (const u of units) {
+    const matches = await getMatchesForUnit(u.id);
+    totalMatches += matches.length;
+  }
+  const badge = document.getElementById('matchBadge');
+  if (totalMatches > 0) {
+    badge.style.display = 'flex';
+    badge.textContent = totalMatches;
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+// =============================================
+// FORM HELPERS
+// =============================================
+function selectOption(groupId, el) {
+  document.querySelectorAll('#' + groupId + ' .btn-option').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function toggleCheckbox(el) {
+  const cb = el.querySelector('input');
+  cb.checked = !cb.checked;
+  el.classList.toggle('checked', cb.checked);
+
+  // If "Any" is selected, uncheck others and vice versa
+  if (cb.value === 'Any' && cb.checked) {
+    document.querySelectorAll('#programGroup .checkbox-item').forEach(item => {
+      const inp = item.querySelector('input');
+      if (inp.value !== 'Any') { inp.checked = false; item.classList.remove('checked'); }
+    });
+  } else if (cb.value !== 'Any' && cb.checked) {
+    const anyItem = document.querySelector('#programGroup .checkbox-item input[value="Any"]');
+    if (anyItem) { anyItem.checked = false; anyItem.parentElement.classList.remove('checked'); }
+  }
+}
+
+function getSelectedPrograms() {
+  const checked = [];
+  document.querySelectorAll('#programGroup input:checked').forEach(cb => checked.push(cb.value));
+  return checked;
+}
+
+// =============================================
+// ADD UNIT
+// =============================================
+async function addUnit() {
+  const address = document.getElementById('formAddress').value.trim();
+  const unit = document.getElementById('formUnit').value.trim();
+  const rent = parseInt(document.getElementById('formRent').value);
+  const bedEl = document.querySelector('#bedGroup .btn-option.selected');
+  const bathEl = document.querySelector('#bathGroup .btn-option.selected');
+  const programs = getSelectedPrograms();
+  const inspection = document.getElementById('formInspection').value;
+  const availDate = document.getElementById('formAvailDate').value;
+  const neighborhood = document.getElementById('formNeighborhood').value;
+  const notes = document.getElementById('formNotes').value.trim();
+
+  if (!address || !unit || !rent || !bedEl || !bathEl || programs.length === 0 || !neighborhood) {
+    showToast('Please fill in all required fields');
+    return;
+  }
+
+  const { error } = await supabase.from('units').insert({
+    landlord_id: currentUser.id,
+    organization_id: currentUser.organizationId,
+    building_address: address,
+    unit_number: unit,
+    bedrooms: parseInt(bedEl.dataset.val),
+    bathrooms: parseFloat(bathEl.dataset.val),
+    monthly_rent: rent,
+    accepted_programs: programs,
+    inspection_status: inspection,
+    availability_date: availDate || null,
+    neighborhood: neighborhood,
+    notes: notes
+  });
+
+  if (error) { showToast('Error: ' + error.message); return; }
+
+  // Reset form
+  document.getElementById('formAddress').value = '';
+  document.getElementById('formUnit').value = '';
+  document.getElementById('formRent').value = '';
+  document.getElementById('formAvailDate').value = '';
+  document.getElementById('formNeighborhood').value = '';
+  document.getElementById('formNotes').value = '';
+  document.querySelectorAll('#bedGroup .btn-option, #bathGroup .btn-option').forEach(b => b.classList.remove('selected'));
+  document.querySelectorAll('#programGroup .checkbox-item').forEach(item => {
+    item.classList.remove('checked');
+    item.querySelector('input').checked = false;
+  });
+
+  showToast('Unit added successfully');
+  switchTab('portfolio');
+}
+
+// =============================================
+// PORTFOLIO RENDERING
+// =============================================
+function getInspectionDisplay(status) {
+  switch (status) {
+    case 'Pre-inspected': return { text: 'Pre-inspected', color: 'green' };
+    case 'Needs Inspection': return { text: 'Needs inspection', color: 'amber' };
+    case 'Scheduled': return { text: 'Inspection scheduled', color: 'amber' };
+    case 'Failed - Needs Repair': return { text: 'Failed', color: 'coral' };
+    default: return { text: status, color: 'gray' };
+  }
+}
+
+function formatAvailDate(dateStr) {
+  if (!dateStr) return 'TBD';
+  const d = new Date(dateStr + 'T00:00:00');
+  const now = new Date();
+  if (d <= now) return 'Available now';
+  return 'Available ' + d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+function groupByAddress(units) {
+  const groups = {};
+  units.forEach(u => {
+    if (!groups[u.building_address]) groups[u.building_address] = { address: u.building_address, neighborhood: u.neighborhood, units: [] };
+    groups[u.building_address].units.push(u);
+  });
+  return Object.values(groups);
+}
+
+async function renderPortfolio() {
+  const units = await getUnits();
+  const container = document.getElementById('portfolioCards');
+  document.getElementById('unitCount').textContent = units.length;
+
+  const buildings = groupByAddress(units);
+  let html = '';
+
+  for (const b of buildings) {
+    const total = b.units.length;
+    const available = b.units.filter(u => {
+      if (!u.availability_date) return false;
+      const d = new Date(u.availability_date + 'T00:00:00');
+      return d <= new Date();
+    }).length;
+    const pct = total > 0 ? Math.round((available / total) * 100) : 0;
+
+    html += `<div class="building-group">`;
+    html += `<div class="building-header">`;
+    html += `<div><div class="building-name">${b.address}</div>`;
+    html += `<div class="building-address">${b.neighborhood} · ${total} unit${total > 1 ? 's' : ''}</div></div>`;
+    html += `<div class="building-occupancy"><div class="pct">${pct}%</div><div class="label">available</div></div>`;
+    html += `</div>`;
+    html += `<div class="occupancy-bar"><div class="occupancy-bar-fill" style="width:${pct}%"></div></div>`;
+    html += `<div class="unit-grid">`;
+
+    for (const u of b.units) {
+      const insp = getInspectionDisplay(u.inspection_status);
+      const avail = formatAvailDate(u.availability_date);
+      const bedLabel = u.bedrooms === 0 ? 'Studio' : u.bedrooms + 'BR';
+
+      // Count matches for this unit
+      const unitMatches = await getMatchesForUnit(u.id);
+      const matchLabel = unitMatches.length > 0 ? `${unitMatches.length} match${unitMatches.length !== 1 ? 'es' : ''}` : '';
+
+      html += `<div class="unit-card" onclick="openUnitDetail('${u.id}')">`;
+      html += `<span class="status-dot ${insp.color}"></span>`;
+      html += `<div class="unit-card-label">${u.unit_number}</div>`;
+      html += `<div class="unit-card-info">${bedLabel}/${u.bathrooms}BA · $${u.monthly_rent.toLocaleString()}/mo</div>`;
+      html += `<div class="unit-card-status ${insp.color}">${insp.text}</div>`;
+      if (matchLabel) html += `<div style="margin-top:6px;font-size:11px;font-weight:700;color:var(--forest);">${matchLabel}</div>`;
+      html += `<div class="program-tags">${(u.accepted_programs || []).map(p => `<span class="program-tag">${p}</span>`).join('')}</div>`;
+      html += `</div>`;
+    }
+
+    html += `</div></div>`;
+  }
+
+  container.innerHTML = html;
+}
+
+function toggleCard(el) {
+  el.classList.toggle('expanded');
+}
+
+// =============================================
+// UNIT DETAIL VIEW
+// =============================================
+async function openUnitDetail(unitId) {
+  // Switch to the unit detail page
+  document.querySelectorAll('.page-view').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-unitdetail').classList.add('active');
+  // Deactivate nav items (this isn't a nav tab)
+  document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
+  document.querySelector('.nav-item[data-page="portfolio"]').classList.add('active');
+  document.getElementById('pageContent').scrollTop = 0;
+
+  await renderUnitDetail(unitId);
+}
+
+async function renderUnitDetail(unitId) {
+  const units = await getUnits();
+  const u = units.find(x => x.id === unitId);
+  if (!u) return;
+
+  const matches = await getMatchesForUnit(u.id);
+
+  const bedLabel = u.bedrooms === 0 ? 'Studio' : u.bedrooms + 'BR';
+  const insp = getInspectionDisplay(u.inspection_status);
+  const avail = formatAvailDate(u.availability_date);
+
+  let html = '';
+
+  // Unit header card
+  html += `<div class="unit-detail-header">`;
+  html += `<div class="unit-detail-title">${u.building_address}, ${u.unit_number}</div>`;
+  html += `<div class="unit-detail-sub">${u.neighborhood}</div>`;
+  html += `<div class="unit-detail-grid">`;
+  html += `<div class="unit-detail-stat"><div class="stat-label">Rent</div><div class="stat-value">$${u.monthly_rent.toLocaleString()}/mo</div></div>`;
+  html += `<div class="unit-detail-stat"><div class="stat-label">Layout</div><div class="stat-value">${bedLabel} / ${u.bathrooms}BA</div></div>`;
+  html += `<div class="unit-detail-stat"><div class="stat-label">Inspection</div><div class="stat-value"><span class="status-badge ${insp.color}">${insp.text}</span></div></div>`;
+  html += `<div class="unit-detail-stat"><div class="stat-label">Availability</div><div class="stat-value">${avail}</div></div>`;
+  html += `</div>`;
+  html += `<div class="unit-detail-stat"><div class="stat-label">Accepted Programs</div></div>`;
+  html += `<div class="unit-detail-programs">${(u.accepted_programs || []).map(p => `<span class="program-tag">${p}</span>`).join('')}</div>`;
+  if (u.notes) html += `<div style="margin-top:12px;font-size:13px;color:var(--text-secondary);">${u.notes}</div>`;
+  html += `</div>`;
+
+  // Matches section
+  html += `<div class="unit-detail-matches-label">MATCHED RENTERS · ${matches.length}</div>`;
+
+  if (matches.length === 0) {
+    html += `<div class="match-unit-card"><div class="no-matches">No verified matches for this unit yet</div></div>`;
+  } else {
+    html += `<div class="match-unit-card"><div class="match-list">`;
+    const allDocs = ['Valid ID', 'Proof of Income', 'Voucher Letter', 'Background Check', 'Credit Report', 'Housing History', 'Program Approval Letter'];
+
+    matches.forEach((h, idx) => {
+      const initials = getInitials(h.head_of_household);
+      const displayName = h.head_of_household || 'Unknown';
+      const docsArr = h.documents || [];
+      const docsVerified = docsArr.length;
+      const docsTotal = 7;
+      const totalIncome = (h.monthly_income || 0) + (h.ssi_ssdi_amount || 0);
+      const income = totalIncome ? '$' + totalIncome.toLocaleString() : '--';
+      const contribution = h.tenant_contribution ? '$' + h.tenant_contribution.toLocaleString() : '--';
+      const timeline = h.move_in_timeline || 'Flexible';
+
+      html += `<div class="match-item" onclick="toggleMatchDetail('ud-detail-${idx}')">`;
+      html += `<div class="match-avatar">${initials}</div>`;
+      html += `<div class="match-details">`;
+      html += `<div class="match-name">${displayName}</div>`;
+      html += `<div class="match-meta">`;
+      html += `<span>Income: ${income}</span>`;
+      html += `<span>Contribution: ${contribution}/mo</span>`;
+      html += `<span>Move-in: ${timeline}</span>`;
+      html += `</div>`;
+      html += `<div class="match-tags">`;
+      html += `<span class="match-tag program">${h.voucher_program || 'Voucher'}</span>`;
+      html += `<span class="match-tag ready">Ready · ${docsVerified}/${docsTotal} docs</span>`;
+      html += `</div>`;
+      html += `</div>`;
+      html += `<span style="color:var(--text-muted);font-size:18px;" class="expand-arrow">&rsaquo;</span>`;
+      html += `</div>`;
+
+      // Expanded detail
+      html += `<div class="match-expanded" id="ud-detail-${idx}">`;
+      html += `<div class="match-expanded-grid">`;
+      html += `<div class="match-expanded-item"><div class="exp-label">Household Size</div><div class="exp-value">${h.household_members || '--'}</div></div>`;
+      html += `<div class="match-expanded-item"><div class="exp-label">Monthly Income</div><div class="exp-value">${income}</div></div>`;
+      html += `<div class="match-expanded-item"><div class="exp-label">Tenant Contribution</div><div class="exp-value">${contribution}</div></div>`;
+      html += `<div class="match-expanded-item"><div class="exp-label">Program</div><div class="exp-value">${h.voucher_program || '--'}</div></div>`;
+      html += `<div class="match-expanded-item"><div class="exp-label">Voucher Status</div><div class="exp-value">${h.voucher_status || 'Active'}</div></div>`;
+      html += `<div class="match-expanded-item"><div class="exp-label">Authorized BR</div><div class="exp-value">${h.authorized_bedrooms || '--'}</div></div>`;
+      html += `<div class="match-expanded-item"><div class="exp-label">Max Rent</div><div class="exp-value">${h.max_rent ? '$' + h.max_rent.toLocaleString() : '--'}</div></div>`;
+      html += `<div class="match-expanded-item"><div class="exp-label">Move-in Timeline</div><div class="exp-value">${timeline}</div></div>`;
+      if (h.employment_status) html += `<div class="match-expanded-item"><div class="exp-label">Employment</div><div class="exp-value">${h.employment_status}</div></div>`;
+      html += `<div class="match-expanded-item" style="grid-column:1/-1;"><div class="exp-label">Documentation</div><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;">`;
+      allDocs.forEach(d => {
+        const hasDoc = docsArr.includes(d);
+        html += `<span class="doc-chip ${hasDoc ? 'complete' : 'missing'}">${hasDoc ? '\u2713' : '\u2717'} ${d}</span>`;
+      });
+      html += `</div></div>`;
+      if (h.notes) html += `<div class="match-expanded-item" style="grid-column:1/-1;"><div class="exp-label">Caseworker Notes</div><div class="exp-value" style="font-weight:400;font-size:13px;">${h.notes}</div></div>`;
+      html += `</div>`;
+      html += `<div class="match-expanded-actions">`;
+      html += `<button class="btn-small accept" onclick="event.stopPropagation();acceptMatch('${u.id}','${h.household_id}','${displayName.replace(/'/g,"\\'")}','${u.building_address}, ${u.unit_number}','${h.voucher_program || 'Voucher'}','${h.caseworker_id || ''}');renderUnitDetail('${unitId}')">Accept</button>`;
+      html += `<button class="btn-small pass" onclick="event.stopPropagation();showToast('Passed on ${initials}')">Pass</button>`;
+      html += `</div>`;
+      html += `</div>`;
+    });
+
+    html += `</div></div>`;
+  }
+
+  document.getElementById('unitDetailContent').innerHTML = html;
+}
+
+// =============================================
+// HELPERS
+// =============================================
+function getInitials(name) {
+  if (!name) return '?';
+  return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+}
+
+function toggleMatchDetail(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.toggle('visible');
+}
+
+// =============================================
+// MATCHES RENDERING
+// =============================================
+async function renderMatches() {
+  const units = await getUnits();
+  const container = document.getElementById('matchesContainer');
+
+  let totalMatches = 0;
+  let html = '';
+
+  for (const u of units) {
+    const matches = await getMatchesForUnit(u.id);
+    totalMatches += matches.length;
+    const bedLabel = u.bedrooms === 0 ? 'Studio' : u.bedrooms + 'BR';
+
+    html += `<div class="match-unit-card">`;
+    html += `<div class="match-unit-header">`;
+    html += `<div class="match-unit-info">`;
+    html += `<h3>${u.building_address}, ${u.unit_number}</h3>`;
+    html += `<div class="sub">${bedLabel}/${u.bathrooms}BA · $${u.monthly_rent.toLocaleString()}/mo · ${(u.accepted_programs || []).join(', ')} · ${u.neighborhood}</div>`;
+    html += `</div>`;
+    html += `<div class="match-unit-meta">`;
+    html += `<span class="match-count">${matches.length} match${matches.length !== 1 ? 'es' : ''}</span>`;
+    html += `</div>`;
+    html += `</div>`;
+
+    if (matches.length === 0) {
+      html += `<div class="no-matches">No verified matches yet</div>`;
+    } else {
+      html += `<div class="match-list">`;
+      matches.forEach((h, idx) => {
+        const initials = getInitials(h.head_of_household);
+        const displayName = h.head_of_household || 'Unknown';
+        const docsArr = h.documents || [];
+        const docsVerified = docsArr.length;
+        const docsTotal = 7;
+        const totalIncome = (h.monthly_income || 0) + (h.ssi_ssdi_amount || 0);
+        const income = totalIncome ? '$' + totalIncome.toLocaleString() : '--';
+        const contribution = h.tenant_contribution ? '$' + h.tenant_contribution.toLocaleString() : '--';
+        const timeline = h.move_in_timeline || 'Flexible';
+
+        html += `<div class="match-item" id="match-${u.id}-${idx}" onclick="toggleMatchDetail('detail-${u.id}-${idx}')">`;
+        html += `<div class="match-avatar">${initials}</div>`;
+        html += `<div class="match-details">`;
+        html += `<div class="match-name">${displayName}</div>`;
+        html += `<div class="match-meta">`;
+        html += `<span>Income: ${income}</span>`;
+        html += `<span>Contribution: ${contribution}/mo</span>`;
+        html += `<span>Move-in: ${timeline}</span>`;
+        html += `</div>`;
+        html += `<div class="match-tags">`;
+        html += `<span class="match-tag program">${h.voucher_program || 'Voucher'}</span>`;
+        html += `<span class="match-tag ready">Ready · ${docsVerified}/${docsTotal} docs</span>`;
+        html += `</div>`;
+        html += `</div>`;
+        html += `<span style="color:var(--text-muted);font-size:18px;transition:transform .2s;" class="expand-arrow">&rsaquo;</span>`;
+        html += `</div>`;
+
+        // Expanded detail row
+        html += `<div class="match-expanded" id="detail-${u.id}-${idx}">`;
+        html += `<div class="match-expanded-grid">`;
+        html += `<div class="match-expanded-item"><div class="exp-label">Household Size</div><div class="exp-value">${h.household_members || '--'}</div></div>`;
+        html += `<div class="match-expanded-item"><div class="exp-label">Monthly Income</div><div class="exp-value">${income}</div></div>`;
+        html += `<div class="match-expanded-item"><div class="exp-label">Tenant Contribution</div><div class="exp-value">${contribution}</div></div>`;
+        html += `<div class="match-expanded-item"><div class="exp-label">Program</div><div class="exp-value">${h.voucher_program || '--'}</div></div>`;
+        html += `<div class="match-expanded-item"><div class="exp-label">Voucher Status</div><div class="exp-value">${h.voucher_status || 'Active'}</div></div>`;
+        html += `<div class="match-expanded-item"><div class="exp-label">Authorized BR</div><div class="exp-value">${h.authorized_bedrooms || '--'}</div></div>`;
+        html += `<div class="match-expanded-item"><div class="exp-label">Documents</div><div class="exp-value">${docsVerified} of ${docsTotal} verified</div></div>`;
+        html += `<div class="match-expanded-item"><div class="exp-label">Max Rent</div><div class="exp-value">${h.max_rent ? '$' + h.max_rent.toLocaleString() : '--'}</div></div>`;
+        html += `<div class="match-expanded-item"><div class="exp-label">Preferred Areas</div><div class="exp-value">${(h.preferred_neighborhoods || []).join(', ') || '--'}</div></div>`;
+        html += `<div class="match-expanded-item"><div class="exp-label">Move-in Timeline</div><div class="exp-value">${timeline}</div></div>`;
+        if (h.employment_status) html += `<div class="match-expanded-item"><div class="exp-label">Employment</div><div class="exp-value">${h.employment_status}</div></div>`;
+        if (h.notes) html += `<div class="match-expanded-item"><div class="exp-label">Notes</div><div class="exp-value">${h.notes}</div></div>`;
+        // Docs as interactive tags
+        const allDocs = ['Valid ID', 'Proof of Income', 'Voucher Letter', 'Background Check', 'Credit Report', 'Housing History', 'Program Approval Letter'];
+        const hhDocs = h.documents || [];
+        html += `<div class="match-expanded-item" style="grid-column:1/-1;"><div class="exp-label">Documentation</div><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;">`;
+        allDocs.forEach(d => {
+          const hasDoc = hhDocs.includes(d);
+          html += `<span class="doc-chip ${hasDoc ? 'complete' : 'missing'}">${hasDoc ? '\u2713' : '\u2717'} ${d}</span>`;
+        });
+        html += `</div></div>`;
+        html += `</div>`;
+        // Action buttons inside expanded area
+        html += `<div class="match-expanded-actions">`;
+        html += `<button class="btn-small accept" onclick="event.stopPropagation();acceptMatch('${u.id}','${h.household_id}','${displayName.replace(/'/g,"\\'")}','${u.building_address}, ${u.unit_number}','${h.voucher_program || 'Voucher'}','${h.caseworker_id || ''}')">Accept</button>`;
+        html += `<button class="btn-small pass" onclick="event.stopPropagation();showToast('Passed on ${initials}')">Pass</button>`;
+        html += `</div>`;
+        html += `</div>`;
+      });
+      html += `</div>`;
+    }
+
+    html += `</div>`;
+  }
+
+  container.innerHTML = html;
+
+  // Update badge
+  const badge = document.getElementById('matchBadge');
+  if (totalMatches > 0) {
+    badge.style.display = 'flex';
+    badge.textContent = totalMatches;
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+// =============================================
+// ACCEPT MATCH
+// =============================================
+async function acceptMatch(unitId, householdId, householdName, unitLabel, program, caseworkerId) {
+  const { error } = await supabase.from('pipeline').insert({
+    household_id: householdId,
+    unit_id: unitId,
+    landlord_id: currentUser.id,
+    caseworker_id: caseworkerId || null,
+    stage: 'Accepted'
+  });
+
+  if (error) {
+    if (error.code === '23505') showToast('Already in pipeline');
+    else showToast('Error: ' + error.message);
+    return;
+  }
+
+  showToast('Moved ' + householdName + ' to pipeline');
+  renderMatches();
+}
+
+// =============================================
+// PIPELINE RENDERING
+// =============================================
+function getStageClass(stage) {
+  switch (stage) {
+    case 'Accepted': return 'stage-accepted';
+    case 'Submission': return 'stage-submission';
+    case 'Inspection': return 'stage-inspection';
+    case 'Approval': return 'stage-approval';
+    case 'Lease Signed': return 'stage-signed';
+    default: return 'stage-accepted';
+  }
+}
+
+async function renderPipeline() {
+  const pipeline = await getPipeline();
+  const tbody = document.getElementById('pipelineBody');
+  const empty = document.getElementById('pipelineEmpty');
+  const table = document.getElementById('pipelineTable');
+
+  if (pipeline.length === 0) {
+    table.style.display = 'none';
+    empty.style.display = 'block';
+    return;
+  }
+
+  table.style.display = '';
+  empty.style.display = 'none';
+
+  let html = '';
+  pipeline.forEach(p => {
+    const householdName = p.households ? p.households.head_of_household : 'Unknown';
+    const unitLabel = p.units ? p.units.building_address + ', ' + p.units.unit_number : 'Unknown';
+    const program = p.households ? p.households.voucher_program : '--';
+    const initials = getInitials(householdName);
+    const dateStr = p.created_at ? new Date(p.created_at).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' }) : '--';
+
+    html += `<tr>`;
+    html += `<td><div style="display:flex;align-items:center;gap:10px;">`;
+    html += `<div class="match-avatar" style="width:32px;height:32px;font-size:11px;">${initials}</div>`;
+    html += `<span style="font-weight:600;">${householdName}</span>`;
+    html += `</div></td>`;
+    html += `<td>${unitLabel}</td>`;
+    html += `<td>${program}</td>`;
+    html += `<td><span class="stage-badge ${getStageClass(p.stage)}">${p.stage}</span></td>`;
+    html += `<td style="color:var(--text-muted);">${dateStr}</td>`;
+    html += `</tr>`;
+  });
+
+  tbody.innerHTML = html;
+}
+
+// =============================================
+// INIT
+// =============================================
+(async () => {
+  await initAuth('landlord');
+
+  // Update topbar with user info
+  document.querySelector('.portfolio-pill').textContent = currentUser.orgName || 'My Portfolio';
+  const initials = currentUser.fullName ? currentUser.fullName.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2) : '?';
+  const avatarEl = document.querySelector('.avatar');
+  avatarEl.textContent = initials;
+  avatarEl.style.cursor = 'pointer';
+  avatarEl.onclick = () => logout();
+
+  await renderPortfolio();
+  await renderMatches();
+  await renderPipeline();
+  updateMatchBadge();
+})();
+</script>
+
+</body>
+</html>

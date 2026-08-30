@@ -1,0 +1,2163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nesso · Broker</title>
+  <link rel="icon" type="image/png" href="https://www.vryfiexchange.com/favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=DM+Serif+Display&display=swap" rel="stylesheet">
+  <style>
+    /* ═══════════════════════════════════════════════
+       DESIGN TOKENS
+       ═══════════════════════════════════════════════ */
+    :root {
+      --bg: #faf8f4;
+      --bg-warm: #f5f0e8;
+      --card: #ffffff;
+      --card-hover: #fefdfb;
+      --border: rgba(0,0,0,.07);
+      --border-strong: rgba(0,0,0,.12);
+      --text: #1a1a1a;
+      --text-secondary: #6b6560;
+      --text-muted: #a09890;
+      --forest: #1b6b4a;
+      --forest-dark: #14503a;
+      --forest-light: #e6f2ec;
+      --forest-soft: rgba(27,107,74,.08);
+      --green: #1b6b4a;
+      --green-soft: rgba(27,107,74,.10);
+      --amber: #c4830a;
+      --amber-soft: rgba(196,131,10,.10);
+      --teal: #0e8a6f;
+      --teal-soft: rgba(14,138,111,.10);
+      --coral: #d4644a;
+      --coral-soft: rgba(212,100,74,.10);
+      --gray: #9a9490;
+      --gray-soft: rgba(154,148,144,.10);
+      --rail-width: 340px;
+      --nav-height: 72px;
+      --topbar-height: 56px;
+      --font-sans: 'Inter', -apple-system, sans-serif;
+      --font-serif: 'DM Serif Display', Georgia, serif;
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-xl: 20px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+      overflow: hidden;
+      height: 100vh;
+    }
+
+    /* ═══════════════════════════════════════════════
+       LAYOUT
+       ═══════════════════════════════════════════════ */
+    .app-shell {
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .main-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      height: 100vh;
+    }
+
+    /* TOP BAR */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 28px;
+      height: var(--topbar-height);
+      flex-shrink: 0;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .topbar-logo {
+      width: 28px; height: 28px;
+      background: var(--forest);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .topbar-logo svg { width: 14px; height: 14px; fill: white; }
+
+    .topbar-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: -.01em;
+    }
+
+    .topbar-title span { color: var(--text-muted); font-weight: 400; }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .portfolio-pill {
+      padding: 6px 16px;
+      border: 1px solid var(--border-strong);
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .avatar {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: var(--forest);
+      color: white;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700;
+    }
+
+    /* PAGE CONTENT */
+    .page-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px 28px;
+      padding-bottom: calc(var(--nav-height) + 24px);
+    }
+
+    /* SECTION HEADER BAR */
+    .section-bar {
+      background: var(--forest-dark);
+      color: var(--forest-light);
+      padding: 12px 20px;
+      border-radius: var(--radius-md);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .section-bar .bar-right {
+      display: flex;
+      gap: 8px;
+    }
+
+    .view-toggle-btn {
+      padding: 4px 12px;
+      border-radius: 6px;
+      border: 1px solid rgba(255,255,255,.2);
+      background: transparent;
+      color: rgba(255,255,255,.6);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      font-family: var(--font-sans);
+      transition: all .15s;
+    }
+
+    .view-toggle-btn.active {
+      background: rgba(255,255,255,.15);
+      color: white;
+      border-color: rgba(255,255,255,.3);
+    }
+
+    .view-toggle-btn:hover:not(.active) {
+      border-color: rgba(255,255,255,.3);
+      color: rgba(255,255,255,.8);
+    }
+
+    /* SERIF HEADING */
+    .serif-heading {
+      font-family: var(--font-serif);
+      font-size: 28px;
+      font-weight: 400;
+      color: var(--text);
+      line-height: 1.2;
+      margin-bottom: 4px;
+    }
+
+    /* MONO LABEL */
+    .mono-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: var(--forest);
+    }
+
+    /* ═══════════════════════════════════════════════
+       BOTTOM NAV
+       ═══════════════════════════════════════════════ */
+    .bottom-nav {
+      position: fixed;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(calc(-50% - var(--rail-width) / 2));
+      background: #1a1a1a;
+      border-radius: 999px;
+      padding: 6px 8px;
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      z-index: 100;
+      box-shadow: 0 8px 32px rgba(0,0,0,.18);
+    }
+
+    .nav-item {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: all .2s;
+      color: rgba(255,255,255,.5);
+      border: none;
+      background: none;
+      font-family: var(--font-sans);
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .nav-item:hover { color: rgba(255,255,255,.8); }
+
+    .nav-item.active {
+      background: var(--forest);
+      color: white;
+    }
+
+    .nav-item svg {
+      width: 18px; height: 18px;
+      fill: currentColor;
+    }
+
+    .nav-item .nav-label {
+      display: none;
+    }
+
+    .nav-item.active .nav-label {
+      display: inline;
+    }
+
+    .nav-badge {
+      position: absolute;
+      top: 4px; right: 6px;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: var(--coral);
+      color: white;
+      font-size: 9px;
+      font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    /* ═══════════════════════════════════════════════
+       HOMEY RAIL
+       ═══════════════════════════════════════════════ */
+    .homey-rail {
+      width: var(--rail-width);
+      flex-shrink: 0;
+      border-left: 1px solid var(--border);
+      background: var(--card);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    .rail-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .rail-status-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: var(--forest);
+      flex-shrink: 0;
+    }
+
+    .rail-title {
+      font-family: var(--font-serif);
+      font-size: 20px;
+      color: var(--text);
+    }
+
+    .rail-subtitle {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-family: monospace;
+      letter-spacing: .02em;
+    }
+
+    .rail-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+    }
+
+    .rail-bubble {
+      background: var(--bg-warm);
+      border-radius: 14px 14px 14px 4px;
+      padding: 16px;
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--text);
+      margin-bottom: 16px;
+    }
+
+    .rail-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .rail-chip {
+      padding: 8px 14px;
+      border: 1px solid var(--forest);
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--forest);
+      cursor: pointer;
+      background: transparent;
+      font-family: var(--font-sans);
+      transition: all .15s;
+      white-space: nowrap;
+    }
+
+    .rail-chip:hover {
+      background: var(--forest-soft);
+    }
+
+    .rail-input-area {
+      padding: 12px 20px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .rail-input {
+      flex: 1;
+      padding: 12px 16px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      font-size: 13px;
+      font-family: var(--font-sans);
+      color: var(--text);
+      background: var(--bg);
+      outline: none;
+    }
+
+    .rail-input::placeholder { color: var(--text-muted); }
+
+    .rail-input:focus {
+      border-color: var(--forest);
+      box-shadow: 0 0 0 3px var(--forest-soft);
+    }
+
+    .rail-send {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: var(--forest-dark);
+      border: none;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .rail-send svg { width: 16px; height: 16px; fill: white; }
+
+    /* ═══════════════════════════════════════════════
+       TABLE STYLES
+       ═══════════════════════════════════════════════ */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+    }
+
+    .data-table th {
+      text-align: left;
+      padding: 12px 16px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+    }
+
+    .data-table th:hover { color: var(--text-secondary); }
+
+    .data-table td {
+      padding: 14px 16px;
+      font-size: 14px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+
+    .data-table tr:last-child td { border-bottom: none; }
+
+    .data-table .unit-cell {
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .data-table .unit-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 400;
+    }
+
+    .data-table .rent-cell {
+      font-weight: 600;
+    }
+
+    .data-table .criteria-cell {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .data-table .requests-cell {
+      font-weight: 600;
+    }
+
+    .data-table .requests-cell.has-requests {
+      color: var(--forest);
+    }
+
+    /* STATUS BADGE */
+    .status-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+
+    .status-badge.active {
+      color: var(--forest);
+      background: var(--green-soft);
+    }
+
+    .status-badge.leased {
+      color: var(--forest);
+      background: transparent;
+      border: 1px solid var(--forest);
+    }
+
+    .status-badge.inactive {
+      color: var(--gray);
+      background: var(--gray-soft);
+    }
+
+    .status-badge.pending {
+      color: var(--amber);
+      background: var(--amber-soft);
+    }
+
+    /* ═══════════════════════════════════════════════
+       BUILDING CARD VIEW
+       ═══════════════════════════════════════════════ */
+    .building-group {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    .building-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 4px;
+    }
+
+    .building-name {
+      font-family: var(--font-serif);
+      font-size: 20px;
+      color: var(--text);
+    }
+
+    .building-address {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+
+    .building-occupancy {
+      text-align: right;
+    }
+
+    .building-occupancy .pct {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .building-occupancy .label {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: lowercase;
+    }
+
+    .occupancy-bar {
+      height: 4px;
+      background: var(--bg-warm);
+      border-radius: 2px;
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+
+    .occupancy-bar-fill {
+      height: 100%;
+      background: var(--forest);
+      border-radius: 2px;
+      transition: width .4s ease;
+    }
+
+    .unit-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .unit-card {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      cursor: pointer;
+      transition: all .15s;
+      position: relative;
+      background: var(--card);
+    }
+
+    .unit-card:hover {
+      border-color: var(--border-strong);
+      box-shadow: 0 2px 8px rgba(0,0,0,.04);
+    }
+
+    .unit-card.expanded {
+      border-color: var(--forest);
+      box-shadow: 0 2px 12px var(--forest-soft);
+    }
+
+    .unit-card-label {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .unit-card-info {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+    }
+
+    .unit-card-status {
+      font-size: 11px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      position: absolute;
+      top: 14px;
+      right: 14px;
+    }
+
+    .status-dot.green { background: var(--forest); }
+    .status-dot.amber { background: var(--amber); }
+    .status-dot.teal { background: var(--teal); }
+    .status-dot.gray { background: var(--gray); }
+
+    .unit-card-status.green { color: var(--forest); }
+    .unit-card-status.amber { color: var(--amber); }
+    .unit-card-status.teal { color: var(--teal); }
+    .unit-card-status.gray { color: var(--gray); }
+
+    /* EXPANDED CARD DETAILS */
+    .unit-card-details {
+      display: none;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .unit-card.expanded .unit-card-details {
+      display: block;
+    }
+
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 3px 0;
+    }
+
+    .detail-label {
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-size: 9px;
+      letter-spacing: .1em;
+    }
+
+    .detail-value {
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    /* BUILDING FOOTER ACTION */
+    .building-action {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: transparent;
+      width: 100%;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-family: var(--font-sans);
+      transition: all .15s;
+    }
+
+    .building-action:hover {
+      background: var(--forest-soft);
+      color: var(--forest);
+      border-color: var(--forest);
+    }
+
+    .building-action .sparkle {
+      color: var(--forest);
+    }
+
+    /* ═══════════════════════════════════════════════
+       HOME PAGE
+       ═══════════════════════════════════════════════ */
+    .home-greeting {
+      margin-bottom: 4px;
+    }
+
+    .home-headline {
+      font-family: var(--font-serif);
+      font-size: 34px;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .home-sub {
+      font-size: 15px;
+      color: var(--text-secondary);
+      margin-bottom: 28px;
+    }
+
+    .home-sub a {
+      color: var(--forest);
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    .home-cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .home-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+    }
+
+    .home-card.dark {
+      background: var(--forest-dark);
+      color: white;
+    }
+
+    .home-card .card-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .home-card .card-label.green { color: var(--forest); }
+    .home-card.dark .card-label { color: var(--forest-light); }
+
+    .home-card .big-num {
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 2px;
+    }
+
+    .home-card .card-stat-row {
+      display: flex;
+      gap: 24px;
+      margin-bottom: 16px;
+    }
+
+    .home-card .card-stat-item .num {
+      font-size: 28px;
+      font-weight: 700;
+    }
+
+    .home-card .card-stat-item .lbl {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .home-card.dark .card-stat-item .lbl {
+      color: rgba(255,255,255,.5);
+    }
+
+    .home-card .card-footnote {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .home-card.dark .card-footnote {
+      color: rgba(255,255,255,.5);
+    }
+
+    .occupancy-card-bar {
+      height: 6px;
+      background: var(--bg-warm);
+      border-radius: 3px;
+      margin: 12px 0 8px;
+      overflow: hidden;
+    }
+
+    .occupancy-card-bar-fill {
+      height: 100%;
+      background: var(--forest);
+      border-radius: 3px;
+    }
+
+    .leased-pill {
+      display: inline-block;
+      padding: 3px 10px;
+      border: 1px solid var(--forest);
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--forest);
+    }
+
+    /* REQUEST PREVIEW CARD */
+    .request-preview {
+      padding: 20px;
+    }
+
+    .request-preview .rp-label {
+      color: var(--forest-light);
+      opacity: .7;
+    }
+
+    .request-preview .rp-time {
+      font-size: 10px;
+      color: rgba(255,255,255,.4);
+      text-transform: uppercase;
+      letter-spacing: .1em;
+    }
+
+    .request-preview h3 {
+      font-family: var(--font-serif);
+      font-size: 18px;
+      margin: 8px 0 12px;
+    }
+
+    .request-preview .rp-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    .rp-pill {
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      background: rgba(255,255,255,.12);
+      color: white;
+    }
+
+    .rp-pill.verified {
+      background: var(--forest);
+      color: white;
+    }
+
+    .rp-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: white;
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .rp-link .arrow {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: var(--forest);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px;
+    }
+
+    /* STRONGEST CANDIDATE CARD */
+    .candidate-card-preview {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-top: 12px;
+    }
+
+    .candidate-avatar-ring {
+      width: 52px; height: 52px;
+      border-radius: 50%;
+      border: 2px solid var(--forest);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--forest);
+      position: relative;
+    }
+
+    .candidate-avatar-ring .score {
+      position: absolute;
+      bottom: -4px; right: -4px;
+      background: var(--forest);
+      color: white;
+      font-size: 9px;
+      padding: 1px 5px;
+      border-radius: 999px;
+    }
+
+    /* ═══════════════════════════════════════════════
+       CANDIDATES PAGE
+       ═══════════════════════════════════════════════ */
+    .candidate-note {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+    }
+
+    .candidate-row td {
+      vertical-align: middle;
+    }
+
+    .candidate-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .candidate-avatar {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: var(--forest-light);
+      color: var(--forest);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .candidate-name {
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .candidate-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .readiness-score {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--forest);
+    }
+
+    .verification-tags {
+      display: flex;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .tier-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .tier-badge.verified {
+      background: var(--green-soft);
+      color: var(--forest);
+    }
+
+    .tier-badge.registered {
+      background: var(--gray-soft);
+      color: var(--gray);
+    }
+
+    /* ═══════════════════════════════════════════════
+       REQUESTS PAGE
+       ═══════════════════════════════════════════════ */
+    .request-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      margin-bottom: 16px;
+    }
+
+    .request-card-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .request-card-header .name {
+      font-weight: 700;
+      font-size: 16px;
+    }
+
+    .request-card-header .badges {
+      display: flex;
+      gap: 6px;
+    }
+
+    .inline-badge {
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+      border: 1px solid;
+    }
+
+    .inline-badge.verified {
+      color: var(--forest);
+      border-color: var(--forest);
+      background: var(--green-soft);
+    }
+
+    .inline-badge.bg-clear {
+      color: var(--text-secondary);
+      border-color: var(--border-strong);
+      background: transparent;
+    }
+
+    .request-unit-line {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 12px;
+    }
+
+    .request-unit-line strong {
+      color: var(--text);
+    }
+
+    .request-message {
+      background: var(--bg-warm);
+      padding: 14px 16px;
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      color: var(--text);
+      font-style: italic;
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+
+    .request-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn-accept {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 20px;
+      border-radius: var(--radius-md);
+      background: var(--forest);
+      color: white;
+      font-size: 14px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      font-family: var(--font-sans);
+    }
+
+    .btn-decline {
+      padding: 10px 20px;
+      border-radius: var(--radius-md);
+      background: transparent;
+      color: var(--text-secondary);
+      font-size: 14px;
+      font-weight: 500;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      font-family: var(--font-sans);
+    }
+
+    .pending-dot {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--coral);
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .pending-dot::before {
+      content: '';
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--coral);
+    }
+
+    /* PIPELINE HISTORY */
+    .pipeline-section {
+      margin-top: 32px;
+    }
+
+    /* ═══════════════════════════════════════════════
+       ANALYTICS PAGE
+       ═══════════════════════════════════════════════ */
+    .time-toggle {
+      display: flex;
+      gap: 4px;
+    }
+
+    .time-btn {
+      padding: 4px 12px;
+      border-radius: 6px;
+      border: 1px solid rgba(255,255,255,.2);
+      background: transparent;
+      color: rgba(255,255,255,.5);
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: var(--font-sans);
+    }
+
+    .time-btn.active {
+      background: rgba(255,255,255,.15);
+      color: white;
+      border-color: rgba(255,255,255,.3);
+    }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .kpi-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 16px;
+    }
+
+    .kpi-card:first-child {
+      background: var(--forest-dark);
+      color: white;
+    }
+
+    .kpi-card:first-child .kpi-label { color: rgba(255,255,255,.5); }
+
+    .kpi-label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .kpi-value {
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    .kpi-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .kpi-card:first-child .kpi-sub { color: rgba(255,255,255,.4); }
+
+    .analytics-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .analytics-panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+    }
+
+    .analytics-panel h3 {
+      font-family: var(--font-serif);
+      font-size: 18px;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .analytics-panel .panel-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+
+    .funnel-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .funnel-label {
+      font-size: 13px;
+      color: var(--text);
+      width: 80px;
+      flex-shrink: 0;
+    }
+
+    .funnel-bar-track {
+      flex: 1;
+      height: 24px;
+      background: var(--bg-warm);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .funnel-bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      background: var(--forest);
+    }
+
+    .funnel-bar-fill.leased-bar { background: var(--coral); }
+
+    .funnel-stats {
+      font-size: 12px;
+      color: var(--text-muted);
+      width: 80px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .demand-row {
+      margin-bottom: 10px;
+    }
+
+    .demand-label {
+      font-size: 13px;
+      color: var(--text);
+      margin-bottom: 4px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .demand-bar-track {
+      height: 16px;
+      background: var(--bg-warm);
+      border-radius: 4px;
+      overflow: hidden;
+      display: flex;
+    }
+
+    .demand-bar-requests {
+      height: 100%;
+      background: var(--forest);
+      border-radius: 4px 0 0 4px;
+    }
+
+    .demand-bar-matches {
+      height: 100%;
+      background: var(--forest-light);
+    }
+
+    /* ═══════════════════════════════════════════════
+       INBOX PAGE
+       ═══════════════════════════════════════════════ */
+    .inbox-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      margin-bottom: 12px;
+      cursor: pointer;
+      transition: border-color .15s;
+    }
+
+    .inbox-card:hover {
+      border-color: var(--border-strong);
+    }
+
+    .inbox-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .inbox-meta {
+      flex: 1;
+    }
+
+    .inbox-name {
+      font-weight: 700;
+      font-size: 15px;
+      color: var(--text);
+    }
+
+    .inbox-unit {
+      font-size: 13px;
+      color: var(--forest);
+      font-weight: 500;
+    }
+
+    .inbox-time {
+      font-size: 12px;
+      color: var(--text-muted);
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .unread-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--coral);
+    }
+
+    .inbox-body {
+      margin-top: 8px;
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    /* ═══════════════════════════════════════════════
+       PAGE VISIBILITY
+       ═══════════════════════════════════════════════ */
+    .page-view { display: none; }
+    .page-view.active { display: block; }
+
+    /* ═══════════════════════════════════════════════
+       RESPONSIVE
+       ═══════════════════════════════════════════════ */
+    @media (max-width: 1024px) {
+      .homey-rail { display: none; }
+      .bottom-nav { transform: translateX(-50%); }
+      :root { --rail-width: 0px; }
+    }
+
+    @media (max-width: 768px) {
+      .home-cards { grid-template-columns: 1fr; }
+      .analytics-grid { grid-template-columns: 1fr; }
+      .unit-grid { grid-template-columns: repeat(2, 1fr); }
+      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 480px) {
+      .unit-grid { grid-template-columns: 1fr; }
+      .page-content { padding: 16px; }
+    }
+
+    /* ═══════════════════════════════════════════════
+       PLACEHOLDER CHART
+       ═══════════════════════════════════════════════ */
+    .chart-placeholder {
+      height: 140px;
+      display: flex;
+      align-items: flex-end;
+      gap: 3px;
+      padding-top: 20px;
+    }
+
+    .chart-bar {
+      flex: 1;
+      background: var(--forest);
+      border-radius: 2px 2px 0 0;
+      min-height: 4px;
+      opacity: .6;
+    }
+
+    .chart-bar:nth-child(even) {
+      opacity: .3;
+    }
+
+    /* Scrollbar styling */
+    .page-content::-webkit-scrollbar { width: 6px; }
+    .page-content::-webkit-scrollbar-track { background: transparent; }
+    .page-content::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 3px; }
+
+    .rail-body::-webkit-scrollbar { width: 4px; }
+    .rail-body::-webkit-scrollbar-track { background: transparent; }
+    .rail-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  </style>
+</head>
+<body>
+
+<div class="app-shell">
+  <!-- ═══════════ MAIN AREA ═══════════ -->
+  <div class="main-area">
+
+    <!-- TOP BAR -->
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="topbar-logo">
+          <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+        </div>
+        <div class="topbar-title">Nesso <span>· Broker</span></div>
+      </div>
+      <div class="topbar-right">
+        <button class="portfolio-pill">Nesso Demo Portfolio</button>
+        <div class="avatar">N</div>
+      </div>
+    </div>
+
+    <!-- PAGE CONTENT -->
+    <div class="page-content" id="pageContent">
+
+      <!-- ═══════════ HOME ═══════════ -->
+      <div class="page-view active" id="page-home">
+        <div class="mono-label home-greeting">GOOD EVENING · NESSO DEMO PORTFOLIO</div>
+        <div class="home-headline">Your pipeline,</div>
+        <div class="home-sub">You have <a href="#" onclick="switchTab('requests');return false;">2 pending connection requests</a> from verified renters.</div>
+
+        <div class="home-cards">
+          <!-- Portfolio Card -->
+          <div class="home-card">
+            <div class="card-label green">PORTFOLIO</div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+              <div></div>
+              <span class="leased-pill" id="homeLeased">17% leased</span>
+            </div>
+            <div class="card-stat-row" id="homePortfolioStats">
+              <div class="card-stat-item"><div class="num" id="homeTotalUnits">0</div><div class="lbl">Units</div></div>
+              <div class="card-stat-item"><div class="num" id="homeActiveUnits">0</div><div class="lbl">Active</div></div>
+              <div class="card-stat-item"><div class="num">5</div><div class="lbl">Candidates</div></div>
+            </div>
+            <div class="card-footnote">Avg candidate readiness <strong>68</strong> · 6 active connections</div>
+          </div>
+
+          <!-- New Request Card -->
+          <div class="home-card dark">
+            <div class="request-preview">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;">
+                <span class="card-label rp-label">NEW REQUEST · 1H AGO</span>
+              </div>
+              <h3>A.D. wants 240 Vernon Blvd, Unit 4A</h3>
+              <div class="rp-pills">
+                <span class="rp-pill">Readiness 100</span>
+                <span class="rp-pill">Income 3.3x</span>
+              </div>
+              <div style="margin-bottom:8px;"><span class="rp-pill verified">&#10003; Verified</span></div>
+              <a class="rp-link" onclick="switchTab('requests')">Review request <span class="arrow">&rarr;</span></a>
+            </div>
+          </div>
+
+          <!-- Strongest Candidate -->
+          <div class="home-card">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <div class="card-label green">&#9733; STRONGEST CANDIDATE</div>
+              <span class="inline-badge verified">Verified</span>
+            </div>
+            <div class="candidate-card-preview">
+              <div class="candidate-avatar-ring">0</div>
+              <div>
+                <div style="font-weight:600;">Amara Diallo</div>
+                <div style="font-size:13px;color:var(--text-muted);">2 bed · &le; $3,500 · Upper West Side · &le; 30 days</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Occupancy Card -->
+        <div class="home-card" style="max-width:340px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div class="card-label green">OCCUPANCY</div>
+            <span style="color:var(--text-muted);font-size:18px;">&#8250;</span>
+          </div>
+          <div style="margin-top:12px;">
+            <span id="homeOccupied" style="font-size:28px;font-weight:700;">0</span>
+            <span style="color:var(--text-muted);font-size:15px;"> / <span id="homeTotal2">6</span> leased</span>
+          </div>
+          <div class="occupancy-card-bar">
+            <div class="occupancy-card-bar-fill" id="homeOccBar" style="width:17%;"></div>
+          </div>
+          <div class="card-footnote" id="homeActiveNote">4 units actively listed on the exchange.</div>
+        </div>
+      </div>
+
+      <!-- ═══════════ LISTINGS ═══════════ -->
+      <div class="page-view" id="page-listings">
+        <div class="section-bar">
+          <span>LISTINGS · <span id="unitCount">0</span> UNITS</span>
+          <div class="bar-right">
+            <button class="view-toggle-btn active" id="btnCardView" onclick="setListingsView('card')">Cards</button>
+            <button class="view-toggle-btn" id="btnTableView" onclick="setListingsView('table')">Table</button>
+          </div>
+        </div>
+
+        <!-- CARD VIEW -->
+        <div id="listingsCardView"></div>
+
+        <!-- TABLE VIEW -->
+        <div id="listingsTableView" style="display:none;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Unit</th>
+                <th>Rent</th>
+                <th>Bed / Bath</th>
+                <th>Criteria</th>
+                <th>Requests</th>
+                <th>Matched</th>
+                <th>Stage</th>
+              </tr>
+            </thead>
+            <tbody id="listingsTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ═══════════ CANDIDATES ═══════════ -->
+      <div class="page-view" id="page-candidates">
+        <div class="section-bar">
+          <span>CANDIDATES · 5 IN POOL</span>
+        </div>
+        <p class="candidate-note">Names stay masked until a connection is accepted — verified facts, never identities.</p>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Candidate</th>
+              <th>Readiness</th>
+              <th>Verifications</th>
+              <th>Income</th>
+              <th>Tier</th>
+              <th>Stage</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><div class="candidate-info"><div class="candidate-avatar">AD</div><div><div class="candidate-name">Amara Diallo</div><div class="candidate-sub">2 bed · &le; $3,500 · Upper West Side · &le; 30 days</div></div></div></td>
+              <td><span class="readiness-score">100</span></td>
+              <td class="verification-tags">ID · INC · BGC · CRD</td>
+              <td style="color:var(--text-muted);">&#8212;</td>
+              <td><span class="tier-badge verified">&#10003; Verified</span></td>
+              <td><span class="status-badge active">ACTIVE</span></td>
+            </tr>
+            <tr>
+              <td><div class="candidate-info"><div class="candidate-avatar">SR</div><div><div class="candidate-name">Sofia Reyes</div><div class="candidate-sub">1 bed · &le; $3,200 · Long Island City · &le; 45 days</div></div></div></td>
+              <td><span class="readiness-score">95</span></td>
+              <td class="verification-tags">ID · INC · BGC · CRD</td>
+              <td style="color:var(--text-muted);">&#8212;</td>
+              <td><span class="tier-badge verified">&#10003; Verified</span></td>
+              <td><span class="status-badge active">ACTIVE</span></td>
+            </tr>
+            <tr>
+              <td><div class="candidate-info"><div class="candidate-avatar">JP</div><div><div class="candidate-name">Jae Park</div><div class="candidate-sub">2 bed · &le; $3,300 · Greenpoint · &le; 60 days</div></div></div></td>
+              <td><span class="readiness-score">71</span></td>
+              <td class="verification-tags">ID · INC</td>
+              <td style="color:var(--text-muted);">&#8212;</td>
+              <td><span class="tier-badge verified">&#10003; Verified</span></td>
+              <td><span class="status-badge active">ACTIVE</span></td>
+            </tr>
+            <tr>
+              <td><div class="candidate-info"><div class="candidate-avatar">MC</div><div><div class="candidate-name">Marcus Chen</div><div class="candidate-sub">2 bed · &le; $3,400 · Brooklyn · &le; 30 days</div></div></div></td>
+              <td><span class="readiness-score">60</span></td>
+              <td class="verification-tags">ID · INC</td>
+              <td style="color:var(--text-muted);">&#8212;</td>
+              <td><span class="tier-badge verified">&#10003; Verified</span></td>
+              <td><span class="status-badge active">ACTIVE</span></td>
+            </tr>
+            <tr>
+              <td><div class="candidate-info"><div class="candidate-avatar">TW</div><div><div class="candidate-name">T.W.</div><div class="candidate-sub">1 bed · &le; $2,800 · Long Island City · Flexible</div></div></div></td>
+              <td><span class="readiness-score" style="color:var(--text-muted);">15</span></td>
+              <td class="verification-tags">&#8212;</td>
+              <td style="color:var(--text-muted);">&#8212;</td>
+              <td><span class="tier-badge registered">Registered</span></td>
+              <td><span class="status-badge pending">PENDING</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- ═══════════ REQUESTS ═══════════ -->
+      <div class="page-view" id="page-requests">
+        <div class="mono-label" style="margin-bottom:4px;">RENTERS REACHING OUT</div>
+        <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px;">
+          <h2 class="serif-heading" style="margin-bottom:0;">Connection requests</h2>
+          <span class="pending-dot">2 pending</span>
+        </div>
+
+        <div class="request-card">
+          <div class="request-card-header">
+            <div class="candidate-avatar">AD</div>
+            <span class="name">A.D.</span>
+            <div class="badges">
+              <span class="inline-badge verified">&#10003; Verified</span>
+              <span class="inline-badge bg-clear">Background clear</span>
+            </div>
+          </div>
+          <div class="request-unit-line">wants <strong>240 Vernon Blvd, Unit 4A</strong> · $3,400/mo · income 3.3x rent · 1h ago</div>
+          <div class="request-message">"100 readiness, all four verifications complete. Can move in on the 1st."</div>
+          <div class="request-actions">
+            <button class="btn-accept">&#10003; Accept — unlock full profile</button>
+            <button class="btn-decline">Decline</button>
+          </div>
+        </div>
+
+        <div class="request-card">
+          <div class="request-card-header">
+            <div class="candidate-avatar">SR</div>
+            <span class="name">S.R.</span>
+            <div class="badges">
+              <span class="inline-badge verified">&#10003; Verified</span>
+              <span class="inline-badge bg-clear">Background clear</span>
+            </div>
+          </div>
+          <div class="request-unit-line">wants <strong>47 Center Blvd, Unit 12C</strong> · $3,100/mo · income 3.1x rent · 4h ago</div>
+          <div class="request-message">"Hi — fully verified and ready to move within 45 days. Would love to set up a viewing for Unit 12C."</div>
+          <div class="request-actions">
+            <button class="btn-accept">&#10003; Accept — unlock full profile</button>
+            <button class="btn-decline">Decline</button>
+          </div>
+        </div>
+
+        <!-- Pipeline History -->
+        <div class="pipeline-section">
+          <div class="mono-label" style="margin-bottom:14px;">PIPELINE HISTORY</div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Renter</th>
+                <th>Unit</th>
+                <th>Rent</th>
+                <th>Income Ratio</th>
+                <th>Readiness</th>
+                <th>Stage</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><div class="candidate-info"><div class="candidate-avatar">JP</div><div class="candidate-name">Jae Park</div></div></td>
+                <td>214 Java Street, Apt 3R</td>
+                <td style="font-weight:600;">$3,200</td>
+                <td>2.6x</td>
+                <td><span class="readiness-score">71</span></td>
+                <td><span class="status-badge active">ACCEPTED</span></td>
+              </tr>
+              <tr>
+                <td><div class="candidate-info"><div class="candidate-avatar">TW</div><div class="candidate-name">T.W.</div></div></td>
+                <td>88 Bleecker St, Unit 3R</td>
+                <td style="font-weight:600;">$3,450</td>
+                <td>&#8212;</td>
+                <td style="color:var(--text-muted);">&#8212;</td>
+                <td><span class="status-badge pending">PENDING</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ═══════════ ANALYTICS ═══════════ -->
+      <div class="page-view" id="page-analytics">
+        <div class="section-bar">
+          <span>ANALYTICS</span>
+          <div class="time-toggle">
+            <button class="time-btn">7d</button>
+            <button class="time-btn active">30d</button>
+            <button class="time-btn">90d</button>
+          </div>
+        </div>
+
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-label">PIPELINE VALUE</div>
+            <div class="kpi-value">$0</div>
+            <div class="kpi-sub">annualized, open requests</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">ACCEPTANCE RATE</div>
+            <div class="kpi-value">58%</div>
+            <div class="kpi-sub">of responded requests</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">AVG RESPONSE</div>
+            <div class="kpi-value">22.1h</div>
+            <div class="kpi-sub">request &rarr; decision</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">ACTIVE CONNECTIONS</div>
+            <div class="kpi-value">7</div>
+            <div class="kpi-sub">30-day access windows</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">AVG READINESS</div>
+            <div class="kpi-value">68</div>
+            <div class="kpi-sub">across candidate pool</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">VACANT UNITS</div>
+            <div class="kpi-value" id="analyticsVacant">4</div>
+            <div class="kpi-sub">actively listed</div>
+          </div>
+        </div>
+
+        <div class="analytics-grid">
+          <div class="analytics-panel">
+            <h3>Requests over time</h3>
+            <div class="panel-sub">last 30 days</div>
+            <div class="chart-placeholder" id="requestsChart"></div>
+          </div>
+          <div class="analytics-panel">
+            <h3>Conversion funnel</h3>
+            <div class="panel-sub">candidate pool &rarr; signed lease</div>
+            <div class="funnel-row">
+              <span class="funnel-label">Candidates</span>
+              <div class="funnel-bar-track"><div class="funnel-bar-fill" style="width:70%;"></div></div>
+              <span class="funnel-stats">5</span>
+            </div>
+            <div class="funnel-row">
+              <span class="funnel-label">Requests</span>
+              <div class="funnel-bar-track"><div class="funnel-bar-fill" style="width:100%;"></div></div>
+              <span class="funnel-stats">14 · 280%</span>
+            </div>
+            <div class="funnel-row">
+              <span class="funnel-label">Accepted</span>
+              <div class="funnel-bar-track"><div class="funnel-bar-fill" style="width:50%;"></div></div>
+              <span class="funnel-stats">7 · 50%</span>
+            </div>
+            <div class="funnel-row">
+              <span class="funnel-label">Leased</span>
+              <div class="funnel-bar-track"><div class="funnel-bar-fill leased-bar" style="width:7%;"></div></div>
+              <span class="funnel-stats">1 · 14%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="analytics-grid">
+          <div class="analytics-panel">
+            <h3>Demand by unit</h3>
+            <div class="panel-sub">connection requests + live matches</div>
+            <div id="demandChart"></div>
+          </div>
+          <div class="analytics-panel">
+            <h3>Candidate readiness</h3>
+            <div class="panel-sub">distribution across pool</div>
+            <div class="chart-placeholder" style="height:100px;" id="readinessChart"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════ INBOX ═══════════ -->
+      <div class="page-view" id="page-inbox">
+        <h2 class="serif-heading" style="margin-bottom:20px;">Inbox</h2>
+
+        <div class="inbox-card">
+          <div class="inbox-header">
+            <div class="candidate-avatar">AD</div>
+            <div class="inbox-meta">
+              <div class="inbox-name">Amara Diallo</div>
+              <div class="inbox-unit">240 Vernon Blvd, Unit 4A</div>
+            </div>
+            <div class="inbox-time">1m ago <span class="unread-dot"></span></div>
+          </div>
+          <div class="inbox-body">Great news — your connection request for 240 Vernon Blvd, Unit 4A was accepted. You can now message directly and schedule a viewing.</div>
+        </div>
+
+        <div class="inbox-card">
+          <div class="inbox-header">
+            <div class="candidate-avatar">SR</div>
+            <div class="inbox-meta">
+              <div class="inbox-name">Sofia Reyes</div>
+              <div class="inbox-unit">47 Center Blvd, Unit 12C</div>
+            </div>
+            <div class="inbox-time">4h ago</div>
+          </div>
+          <div class="inbox-body">Hi — fully verified and ready to move within 45 days. Would love to set up a viewing for Unit 12C.</div>
+        </div>
+
+        <div class="inbox-card">
+          <div class="inbox-header">
+            <div class="candidate-avatar">JP</div>
+            <div class="inbox-meta">
+              <div class="inbox-name">Jae Park</div>
+              <div class="inbox-unit">214 Java Street, Apt 3R</div>
+            </div>
+            <div class="inbox-time">5h ago <span class="unread-dot"></span></div>
+          </div>
+          <div class="inbox-body">Thursday 6pm works. Meet at the lobby — bring a photo ID, everything else is already in your Nesso capsule.</div>
+        </div>
+
+        <div class="inbox-card">
+          <div class="inbox-header">
+            <div class="candidate-avatar">MC</div>
+            <div class="inbox-meta">
+              <div class="inbox-name">Marcus Chen</div>
+              <div class="inbox-unit">214 Java Street, Apt 3R</div>
+            </div>
+            <div class="inbox-time">2 days ago <span class="unread-dot"></span></div>
+          </div>
+          <div class="inbox-body">Thanks for the verified application, Marcus. I'd like to schedule a viewing this week — does Thursday evening work?</div>
+        </div>
+
+        <div class="inbox-card">
+          <div class="inbox-header">
+            <div class="candidate-avatar">MC</div>
+            <div class="inbox-meta">
+              <div class="inbox-name">Marcus Chen</div>
+              <div class="inbox-unit">240 Vernon Blvd, Unit 4A</div>
+            </div>
+            <div class="inbox-time">2 days ago</div>
+          </div>
+          <div class="inbox-body">Your connection request was received. We review verified applications within 48 hours.</div>
+        </div>
+      </div>
+
+    </div><!-- /page-content -->
+
+    <!-- BOTTOM NAV -->
+    <div class="bottom-nav">
+      <button class="nav-item active" data-page="home" onclick="switchTab('home')">
+        <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+        <span class="nav-label">Home</span>
+      </button>
+      <button class="nav-item" data-page="listings" onclick="switchTab('listings')">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zM6 20V4h7v5h5v11H6z"/></svg>
+        <span class="nav-label">Listings</span>
+      </button>
+      <button class="nav-item" data-page="candidates" onclick="switchTab('candidates')">
+        <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+        <span class="nav-label">Candidates</span>
+      </button>
+      <button class="nav-item" data-page="requests" onclick="switchTab('requests')">
+        <svg viewBox="0 0 24 24"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>
+        <span class="nav-label">Requests</span>
+        <span class="nav-badge">2</span>
+      </button>
+      <button class="nav-item" data-page="analytics" onclick="switchTab('analytics')">
+        <svg viewBox="0 0 24 24"><path d="M3 17v2h6v-2H3zM3 5v2h10V5H3zm10 16v-2h8v-2h-8v-2h-2v6h2zM7 9v2H3v2h4v2h2V9H7zm14 4v-2H11v2h10zm-6-4h2V7h4V5h-4V3h-2v6z"/></svg>
+        <span class="nav-label">Analytics</span>
+      </button>
+      <button class="nav-item" data-page="inbox" onclick="switchTab('inbox')">
+        <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4V8l8 5 8-5v10zm-8-7L4 6h16l-8 5z"/></svg>
+        <span class="nav-label">Inbox</span>
+      </button>
+    </div>
+
+  </div><!-- /main-area -->
+
+  <!-- ═══════════ HOMEY RAIL ═══════════ -->
+  <div class="homey-rail">
+    <div class="rail-header">
+      <div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span class="rail-status-dot"></span>
+          <span class="rail-title">Homey</span>
+        </div>
+        <div class="rail-subtitle" style="margin-left:20px;">broker mode · online</div>
+      </div>
+    </div>
+    <div class="rail-body">
+      <div class="rail-bubble" id="railBubble">
+        Your pipeline at a glance. Ask me about candidates, vacant units, or what to prioritize today.
+      </div>
+      <div class="rail-chips" id="railChips">
+        <button class="rail-chip" onclick="prefillHomey('What should I prioritize?')">What should I prioritize?</button>
+        <button class="rail-chip" onclick="prefillHomey('Summarize my portfolio')">Summarize my portfolio</button>
+        <button class="rail-chip" onclick="prefillHomey('Any stale listings?')">Any stale listings?</button>
+      </div>
+    </div>
+    <div class="rail-input-area">
+      <input class="rail-input" id="homeyInput" type="text" placeholder="Ask Homey anything...">
+      <button class="rail-send" onclick="sendHomey()">
+        <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+      </button>
+    </div>
+  </div>
+
+</div><!-- /app-shell -->
+
+<script>
+// ═══════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════
+const listings = [
+  { id: 1, building: '214 Java Street', unit: 'Apt 3R', neighborhood: 'Greenpoint', rent: 3200, beds: 2, baths: 1, criteria: '40x inc · 680+ credit', requests: 0, matched: 1, stage: 'ACTIVE', daysVacant: 14 },
+  { id: 2, building: '214 Java Street', unit: 'Apt 1A', neighborhood: 'Greenpoint', rent: 2750, beds: 1, baths: 1, criteria: '40x inc · 650+ credit', requests: 0, matched: 0, stage: 'LEASED', daysVacant: 0 },
+  { id: 3, building: '240 Vernon Blvd', unit: 'Unit 4A', neighborhood: 'Long Island City', rent: 3400, beds: 2, baths: 1, criteria: '40x inc · 680+ credit', requests: 1, matched: 3, stage: 'ACTIVE', daysVacant: 22 },
+  { id: 4, building: '240 Vernon Blvd', unit: 'Unit 2B', neighborhood: 'Long Island City', rent: 2900, beds: 1, baths: 1, criteria: '40x inc · 660+ credit', requests: 0, matched: 1, stage: 'LEASED', daysVacant: 0 },
+  { id: 5, building: '47 Center Blvd', unit: 'Unit 12C', neighborhood: 'Long Island City', rent: 3100, beds: 1, baths: 1, criteria: '40x inc · 660+ credit', requests: 1, matched: 3, stage: 'ACTIVE', daysVacant: 8 },
+  { id: 6, building: '47 Center Blvd', unit: 'Unit 8A', neighborhood: 'Long Island City', rent: 3350, beds: 2, baths: 1, criteria: '40x inc · 680+ credit', requests: 0, matched: 0, stage: 'LEASED', daysVacant: 0 },
+  { id: 7, building: '412 Riverside Dr', unit: 'Unit 4B', neighborhood: 'Upper West Side', rent: 3200, beds: 2, baths: 1, criteria: '40x inc · 680+ credit', requests: 0, matched: 2, stage: 'ACTIVE', daysVacant: 31 },
+  { id: 8, building: '412 Riverside Dr', unit: 'Unit 7A', neighborhood: 'Upper West Side', rent: 2800, beds: 1, baths: 1, criteria: '40x inc · 650+ credit', requests: 0, matched: 1, stage: 'ACTIVE', daysVacant: 5 },
+  { id: 9, building: '88 Bleecker St', unit: 'Unit 3R', neighborhood: 'Greenwich Village', rent: 3450, beds: 1, baths: 1, criteria: '40x inc · 700+ credit', requests: 0, matched: 1, stage: 'LEASED', daysVacant: 0 },
+  { id: 10, building: '158 Greenpoint Ave', unit: '2F', neighborhood: 'Greenpoint', rent: 2950, beds: 1, baths: 1, criteria: '40x inc · 650+ credit', requests: 0, matched: 1, stage: 'INACTIVE', daysVacant: 45 },
+];
+
+// ═══════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════
+function groupByBuilding(data) {
+  const groups = {};
+  data.forEach(u => {
+    if (!groups[u.building]) {
+      groups[u.building] = { name: u.building, neighborhood: u.neighborhood, units: [] };
+    }
+    groups[u.building].units.push(u);
+  });
+  return Object.values(groups);
+}
+
+function getStatusDisplay(unit) {
+  if (unit.stage === 'LEASED') return { text: 'leased', color: 'green' };
+  if (unit.stage === 'INACTIVE') return { text: 'inactive', color: 'gray' };
+  if (unit.requests > 0) return { text: 'app in progress', color: 'teal' };
+  if (unit.daysVacant > 0) return { text: `vacant ${unit.daysVacant}d`, color: 'amber' };
+  return { text: 'active', color: 'amber' };
+}
+
+function getOccupancy(units) {
+  const leased = units.filter(u => u.stage === 'LEASED').length;
+  return { leased, total: units.length, pct: Math.round((leased / units.length) * 100) };
+}
+
+// ═══════════════════════════════════════════════
+// RENDER: LISTINGS CARD VIEW
+// ═══════════════════════════════════════════════
+function renderCardView() {
+  const container = document.getElementById('listingsCardView');
+  const buildings = groupByBuilding(listings);
+  let html = '';
+
+  buildings.forEach(b => {
+    const occ = getOccupancy(b.units);
+    const vacantCount = b.units.filter(u => u.stage !== 'LEASED').length;
+
+    html += `<div class="building-group">`;
+    html += `<div class="building-header">`;
+    html += `<div><div class="building-name">${b.name}</div>`;
+    html += `<div class="building-address">${b.neighborhood}</div></div>`;
+    html += `<div class="building-occupancy"><div class="pct">${occ.pct}%</div><div class="label">occupied</div></div>`;
+    html += `</div>`;
+    html += `<div class="occupancy-bar"><div class="occupancy-bar-fill" style="width:${occ.pct}%"></div></div>`;
+    html += `<div class="unit-grid">`;
+
+    b.units.forEach(u => {
+      const s = getStatusDisplay(u);
+      html += `<div class="unit-card" onclick="toggleCard(this)" data-id="${u.id}">`;
+      html += `<span class="status-dot ${s.color}"></span>`;
+      html += `<div class="unit-card-label">${u.unit}</div>`;
+      html += `<div class="unit-card-info">${u.beds}bd · $${u.rent.toLocaleString()}</div>`;
+      html += `<div class="unit-card-status ${s.color}">${s.text}</div>`;
+      html += `<div class="unit-card-details">`;
+      html += `<div class="detail-row"><span class="detail-label">Bed / Bath</span><span class="detail-value">${u.beds} / ${u.baths}</span></div>`;
+      html += `<div class="detail-row"><span class="detail-label">Criteria</span><span class="detail-value">${u.criteria}</span></div>`;
+      html += `<div class="detail-row"><span class="detail-label">Requests</span><span class="detail-value">${u.requests}</span></div>`;
+      html += `<div class="detail-row"><span class="detail-label">Matched</span><span class="detail-value">${u.matched}</span></div>`;
+      html += `<div class="detail-row"><span class="detail-label">Stage</span><span class="detail-value">${u.stage}</span></div>`;
+      html += `</div>`;
+      html += `</div>`;
+    });
+
+    html += `</div>`;
+
+    if (vacantCount > 0) {
+      html += `<button class="building-action" onclick="askHomeyFill('${b.name}', ${vacantCount})">`;
+      html += `<span class="sparkle">&#10022;</span> Ask Homey to fill ${vacantCount} vacant unit${vacantCount > 1 ? 's' : ''}`;
+      html += `</button>`;
+    }
+
+    html += `</div>`;
+  });
+
+  container.innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════
+// RENDER: LISTINGS TABLE VIEW
+// ═══════════════════════════════════════════════
+function renderTableView() {
+  const tbody = document.getElementById('listingsTableBody');
+  let html = '';
+
+  listings.forEach(u => {
+    const badgeClass = u.stage === 'LEASED' ? 'leased' : u.stage === 'ACTIVE' ? 'active' : 'inactive';
+    html += `<tr>`;
+    html += `<td><div class="unit-cell">${u.building}, ${u.unit}</div><div class="unit-sub">${u.neighborhood}</div></td>`;
+    html += `<td class="rent-cell">$${u.rent.toLocaleString()}</td>`;
+    html += `<td>${u.beds} / ${u.baths}</td>`;
+    html += `<td class="criteria-cell">${u.criteria}</td>`;
+    html += `<td class="requests-cell ${u.requests > 0 ? 'has-requests' : ''}">${u.requests}</td>`;
+    html += `<td>${u.matched}</td>`;
+    html += `<td><span class="status-badge ${badgeClass}">${u.stage}</span></td>`;
+    html += `</tr>`;
+  });
+
+  tbody.innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════
+// VIEW TOGGLE
+// ═══════════════════════════════════════════════
+function setListingsView(view) {
+  const cardView = document.getElementById('listingsCardView');
+  const tableView = document.getElementById('listingsTableView');
+  const btnCard = document.getElementById('btnCardView');
+  const btnTable = document.getElementById('btnTableView');
+
+  if (view === 'card') {
+    cardView.style.display = 'block';
+    tableView.style.display = 'none';
+    btnCard.classList.add('active');
+    btnTable.classList.remove('active');
+  } else {
+    cardView.style.display = 'none';
+    tableView.style.display = 'block';
+    btnCard.classList.remove('active');
+    btnTable.classList.add('active');
+  }
+}
+
+// ═══════════════════════════════════════════════
+// CARD EXPAND
+// ═══════════════════════════════════════════════
+function toggleCard(el) {
+  el.classList.toggle('expanded');
+}
+
+// ═══════════════════════════════════════════════
+// HOMEY INTERACTIONS
+// ═══════════════════════════════════════════════
+function askHomeyFill(building, count) {
+  const msg = `Find candidates to fill ${count} vacant unit${count > 1 ? 's' : ''} at ${building}`;
+  document.getElementById('homeyInput').value = msg;
+  document.getElementById('homeyInput').focus();
+}
+
+function prefillHomey(text) {
+  document.getElementById('homeyInput').value = text;
+  document.getElementById('homeyInput').focus();
+}
+
+function sendHomey() {
+  const input = document.getElementById('homeyInput');
+  if (!input.value.trim()) return;
+
+  const bubble = document.getElementById('railBubble');
+  const msg = input.value.trim();
+  bubble.textContent = `Thinking about: "${msg}"... (This is a demo — Homey integration coming soon.)`;
+  input.value = '';
+}
+
+// ═══════════════════════════════════════════════
+// TAB SWITCHING
+// ═══════════════════════════════════════════════
+const railContent = {
+  home: {
+    bubble: 'Your pipeline at a glance. Ask me about candidates, vacant units, or what to prioritize today.',
+    chips: ['What should I prioritize?', 'Summarize my portfolio', 'Any stale listings?']
+  },
+  listings: {
+    bubble: 'These are your live units. I can draft listing copy, suggest pricing against comparable verified demand, or flag stale ones.',
+    chips: ['Draft copy for a unit', 'Which unit is hardest to fill?', 'Pricing check']
+  },
+  candidates: {
+    bubble: 'Every candidate here is scoped to your org — verified facts, masked identities until you connect. Want a ranking for a specific unit?',
+    chips: ['Rank candidates for a unit', 'Who is move-in ready?', 'Explain readiness scores']
+  },
+  requests: {
+    bubble: 'Renters who asked to connect. Accepting unlocks their full verified profile and opens a direct thread.',
+    chips: ['Who should I accept first?', "What's the risk on declines?", 'Explain income ratios']
+  },
+  analytics: {
+    bubble: 'Your pipeline metrics, computed live: funnel conversion, response times, demand per unit. Ask me to interpret anything.',
+    chips: ['Why is acceptance rate low?', 'Which unit needs attention?', 'Summarize this month']
+  },
+  inbox: {
+    bubble: 'Your conversations across the portfolio. I can draft replies or schedule viewings.',
+    chips: ['Draft a reply', 'Suggest viewing times', 'Summarize threads']
+  }
+};
+
+function switchTab(page) {
+  // Update nav
+  document.querySelectorAll('.nav-item').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.page === page);
+  });
+
+  // Update pages
+  document.querySelectorAll('.page-view').forEach(p => {
+    p.classList.toggle('active', p.id === 'page-' + page);
+  });
+
+  // Update rail
+  const rc = railContent[page];
+  if (rc) {
+    document.getElementById('railBubble').textContent = rc.bubble;
+    const chips = document.getElementById('railChips');
+    chips.innerHTML = rc.chips.map(c =>
+      `<button class="rail-chip" onclick="prefillHomey('${c}')">${c}</button>`
+    ).join('');
+  }
+
+  // Scroll to top
+  document.getElementById('pageContent').scrollTop = 0;
+}
+
+// ═══════════════════════════════════════════════
+// ANALYTICS CHARTS (simple placeholders)
+// ═══════════════════════════════════════════════
+function renderCharts() {
+  // Requests over time (bar chart)
+  const chart = document.getElementById('requestsChart');
+  const bars = [1,0,1,0,0,1,1,0,0,1,0,1,0,0,1,1,0,1,0,0,1,0,1,1,0,1,2,1,2,1];
+  chart.innerHTML = bars.map(v =>
+    `<div class="chart-bar" style="height:${Math.max(v * 40, 4)}px;"></div>`
+  ).join('');
+
+  // Demand by unit
+  const demandContainer = document.getElementById('demandChart');
+  const demandData = listings
+    .filter(u => u.stage === 'ACTIVE')
+    .sort((a, b) => (b.requests + b.matched) - (a.requests + a.matched))
+    .slice(0, 4);
+
+  const maxDemand = Math.max(...demandData.map(u => u.requests + u.matched), 1);
+  demandContainer.innerHTML = demandData.map(u => {
+    const reqW = (u.requests / maxDemand) * 100;
+    const matchW = (u.matched / maxDemand) * 100;
+    return `<div class="demand-row">
+      <div class="demand-label"><span>${u.building}, ${u.unit}</span><span style="color:var(--text-muted)">${u.requests}r · ${u.matched}m</span></div>
+      <div class="demand-bar-track">
+        <div class="demand-bar-requests" style="width:${reqW}%"></div>
+        <div class="demand-bar-matches" style="width:${matchW}%"></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Readiness histogram
+  const readChart = document.getElementById('readinessChart');
+  const readBars = [0, 1, 0, 2, 0, 0, 2];
+  readChart.innerHTML = readBars.map((v, i) =>
+    `<div class="chart-bar" style="height:${Math.max(v * 30, 4)}px;opacity:${v > 0 ? .7 : .15}">
+      ${v > 0 ? `<div style="text-align:center;font-size:11px;font-weight:600;color:var(--text);margin-top:-18px;">${v}</div>` : ''}
+    </div>`
+  ).join('');
+}
+
+// ═══════════════════════════════════════════════
+// UPDATE HOME STATS
+// ═══════════════════════════════════════════════
+function updateHomeStats() {
+  const total = listings.length;
+  const leased = listings.filter(u => u.stage === 'LEASED').length;
+  const active = listings.filter(u => u.stage === 'ACTIVE').length;
+  const pct = Math.round((leased / total) * 100);
+
+  document.getElementById('homeTotalUnits').textContent = total;
+  document.getElementById('homeActiveUnits').textContent = active;
+  document.getElementById('homeLeased').textContent = `${pct}% leased`;
+  document.getElementById('homeOccupied').textContent = leased;
+  document.getElementById('homeTotal2').textContent = total;
+  document.getElementById('homeOccBar').style.width = `${pct}%`;
+  document.getElementById('homeActiveNote').textContent = `${active} units actively listed on the exchange.`;
+  document.getElementById('analyticsVacant').textContent = active;
+}
+
+// ═══════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════
+document.getElementById('unitCount').textContent = listings.length;
+renderCardView();
+renderTableView();
+renderCharts();
+updateHomeStats();
+
+// Handle enter key in Homey input
+document.getElementById('homeyInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') sendHomey();
+});
+</script>
+
+</body>
+</html>
