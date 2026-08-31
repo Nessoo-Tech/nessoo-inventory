@@ -880,6 +880,296 @@
     .empty-state h3 { font-family: var(--font-serif); font-size: 20px; color: var(--text-secondary); margin-bottom: 6px; }
     .empty-state p { font-size: 13px; max-width: 340px; margin: 0 auto; line-height: 1.5; }
 
+    /* ══════════════════════════════════════════
+       NEIGHBORHOOD MULTI-SELECT
+       ══════════════════════════════════════════ */
+    .nhood-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 6px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      color: var(--text-secondary);
+      transition: background .1s;
+    }
+
+    .nhood-row:hover { background: var(--bg-hover); }
+
+    .nhood-row .nhood-name { flex: 1; }
+
+    .nhood-btn {
+      padding: 2px 6px;
+      border: 1px solid var(--border-strong);
+      border-radius: 3px;
+      font-size: 9px;
+      font-weight: 700;
+      font-family: var(--font-sans);
+      cursor: pointer;
+      background: transparent;
+      color: var(--text-muted);
+      letter-spacing: .04em;
+    }
+
+    .nhood-btn.include { background: var(--green-soft); color: var(--green); border-color: var(--green); }
+    .nhood-btn.exclude { background: var(--red-soft); color: var(--red); border-color: var(--red); }
+
+    /* ══════════════════════════════════════════
+       RENTER COMPONENTS
+       ══════════════════════════════════════════ */
+    .renter-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 12px;
+    }
+
+    .renter-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      cursor: pointer;
+      transition: all .15s;
+    }
+
+    .renter-card:hover { border-color: var(--green-dark); }
+
+    .renter-card-name {
+      font-family: var(--font-serif);
+      font-size: 17px;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .renter-card-contact {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+
+    .renter-card-prefs {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+
+    .renter-card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border);
+    }
+
+    .renter-card-matches {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    /* Renter profile */
+    .renter-profile-header {
+      background: var(--bg-raised);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .renter-profile-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .renter-profile-name {
+      font-family: var(--font-serif);
+      font-size: 24px;
+      color: var(--text);
+    }
+
+    .renter-profile-contact {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-top: 4px;
+    }
+
+    .renter-profile-prefs {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+    }
+
+    .renter-pref-item .renter-pref-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 3px;
+    }
+
+    .renter-pref-item .renter-pref-value {
+      font-size: 14px;
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    /* Match pipeline */
+    .match-section-title {
+      font-family: var(--font-serif);
+      font-size: 20px;
+      color: var(--text);
+      margin-bottom: 14px;
+    }
+
+    .match-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    .match-card:hover { border-color: var(--border-strong); }
+
+    .match-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .match-address {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .match-details {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+
+    .match-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .match-status-select {
+      padding: 4px 8px;
+      border: 1px solid var(--border-strong);
+      border-radius: 6px;
+      font-size: 11px;
+      font-family: var(--font-sans);
+      background: var(--bg-surface);
+      color: var(--text-secondary);
+      cursor: pointer;
+    }
+
+    .match-date {
+      font-size: 11px;
+      color: var(--text-muted);
+      flex-shrink: 0;
+    }
+
+    /* Unit search for renter */
+    .renter-search-section {
+      margin-top: 24px;
+      background: var(--bg-raised);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-lg);
+      padding: 18px;
+    }
+
+    .renter-search-section h3 {
+      font-family: var(--font-serif);
+      font-size: 18px;
+      color: var(--text);
+      margin-bottom: 12px;
+    }
+
+    .renter-search-input {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-family: var(--font-sans);
+      background: var(--bg-surface);
+      color: var(--text);
+      outline: none;
+      margin-bottom: 12px;
+    }
+
+    .renter-search-input:focus { border-color: var(--green-dark); }
+    .renter-search-input::placeholder { color: var(--text-muted); }
+
+    .renter-search-results {
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .send-unit-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      margin-bottom: 6px;
+    }
+
+    .send-unit-card:hover { background: var(--bg-hover); }
+
+    .send-unit-info {
+      font-size: 13px;
+      color: var(--text);
+    }
+
+    .send-unit-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .btn-send {
+      padding: 5px 12px;
+      background: var(--green-dark);
+      color: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 11px;
+      font-weight: 600;
+      font-family: var(--font-sans);
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .btn-send:hover { background: var(--green); color: var(--bg); }
+
+    .renter-status-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .renter-status-badge.active { background: var(--green-soft); color: var(--green); }
+    .renter-status-badge.placed { background: var(--blue-soft); color: var(--blue); }
+    .renter-status-badge.inactive { background: var(--bg-surface); color: var(--text-muted); }
+
     @media (max-width: 768px) {
       .sidebar { display: none; }
       .main { padding: 14px; }
@@ -908,13 +1198,27 @@
   <div class="app-shell">
     <!-- SIDEBAR -->
     <div class="sidebar">
-      <div class="sidebar-header">
-        <div class="sidebar-label">Clients</div>
-        <input type="text" class="sidebar-search" placeholder="Filter clients..." id="clientSearch" oninput="filterClients()">
+      <!-- Client sidebar (shown for Inventory/Search/Analytics) -->
+      <div id="sidebarClients" style="display:flex;flex-direction:column;flex:1;overflow:hidden;">
+        <div class="sidebar-header">
+          <div class="sidebar-label">Clients</div>
+          <input type="text" class="sidebar-search" placeholder="Filter clients..." id="clientSearch" oninput="filterClients()">
+        </div>
+        <div class="sidebar-list" id="clientList"></div>
+        <div class="sidebar-footer">
+          <button class="btn-add-client" onclick="openClientModal()">+ Add Client</button>
+        </div>
       </div>
-      <div class="sidebar-list" id="clientList"></div>
-      <div class="sidebar-footer">
-        <button class="btn-add-client" onclick="openClientModal()">+ Add Client</button>
+      <!-- Renter sidebar (shown for Renters tab) -->
+      <div id="sidebarRenters" style="display:none;flex-direction:column;flex:1;overflow:hidden;">
+        <div class="sidebar-header">
+          <div class="sidebar-label">Renters</div>
+          <input type="text" class="sidebar-search" placeholder="Filter renters..." id="renterSearch" oninput="filterRenters()">
+        </div>
+        <div class="sidebar-list" id="renterList"></div>
+        <div class="sidebar-footer">
+          <button class="btn-add-client" onclick="openRenterModal()">+ Add Renter</button>
+        </div>
       </div>
     </div>
 
@@ -924,6 +1228,7 @@
       <div class="tab-nav" id="tabNav">
         <button class="tab-pill active" data-tab="inventory">Inventory</button>
         <button class="tab-pill" data-tab="search">Search</button>
+        <button class="tab-pill" data-tab="renters">Renters</button>
         <button class="tab-pill" data-tab="analytics">Analytics</button>
       </div>
 
@@ -1013,7 +1318,19 @@
               <option value="2500">Under $2,500</option><option value="3000">Under $3,000</option>
               <option value="4000">Under $4,000</option><option value="5000">Under $5,000</option>
             </select>
-            <select class="filter-select" id="filterNeighborhood" onchange="handleSearch()"><option value="">All Neighborhoods</option></select>
+            <div class="nhood-filter-wrap" style="position:relative;">
+              <button class="filter-select" id="nhoodFilterBtn" onclick="toggleNhoodDropdown()" style="text-align:left;min-width:180px;">
+                All Neighborhoods ▾
+              </button>
+              <div class="nhood-dropdown" id="nhoodDropdown" style="display:none;position:absolute;top:100%;left:0;z-index:50;background:var(--bg-raised);border:1px solid var(--border-strong);border-radius:var(--radius-sm);padding:8px;width:280px;max-height:320px;overflow-y:auto;margin-top:4px;box-shadow:0 8px 24px rgba(0,0,0,.3);">
+                <div style="display:flex;gap:4px;margin-bottom:8px;">
+                  <button class="btn-send" style="flex:1;font-size:10px;padding:4px 8px;" onclick="setAllNhoods('include')">Include All</button>
+                  <button class="btn-send" style="flex:1;font-size:10px;padding:4px 8px;background:var(--red);color:white;" onclick="setAllNhoods('exclude')">Exclude All</button>
+                  <button class="btn-send" style="flex:1;font-size:10px;padding:4px 8px;background:var(--bg-surface);color:var(--text-secondary);" onclick="setAllNhoods('clear')">Clear</button>
+                </div>
+                <div id="nhoodCheckboxes"></div>
+              </div>
+            </div>
             <select class="filter-select" id="filterStatus" onchange="handleSearch()">
               <option value="">All Status</option><option value="active">Active</option><option value="rented">Rented</option>
               <option value="pending">Pending</option><option value="inactive">Inactive</option>
@@ -1022,6 +1339,41 @@
           </div>
           <div class="search-results-count" id="searchResultsCount"></div>
           <div id="searchResults"></div>
+        </div>
+
+        <!-- ── RENTERS TAB ── -->
+        <div class="tab-content" id="tab-renters">
+          <!-- Renter KPIs -->
+          <div class="kpi-row">
+            <div class="kpi-cell">
+              <div class="kpi-label">Total Renters</div>
+              <div class="kpi-value" id="rstat-total">0</div>
+              <div class="kpi-sub" id="rstat-total-sub">&nbsp;</div>
+            </div>
+            <div class="kpi-cell">
+              <div class="kpi-label">Active</div>
+              <div class="kpi-value" id="rstat-active">0</div>
+              <div class="kpi-sub">searching</div>
+            </div>
+            <div class="kpi-cell">
+              <div class="kpi-label">Placed</div>
+              <div class="kpi-value" id="rstat-placed">0</div>
+              <div class="kpi-sub">leased up</div>
+            </div>
+            <div class="kpi-cell">
+              <div class="kpi-label">Avg Matches</div>
+              <div class="kpi-value" id="rstat-avgmatch">0</div>
+              <div class="kpi-sub">per renter</div>
+            </div>
+            <div class="kpi-cell">
+              <div class="kpi-label">Placement Rate</div>
+              <div class="kpi-value gold" id="rstat-rate">0%</div>
+              <div class="kpi-sub">placed / total</div>
+            </div>
+          </div>
+
+          <!-- Renter content: grid (no selection) or profile (selected) -->
+          <div id="renterContent"></div>
         </div>
 
         <!-- ── ANALYTICS TAB ── -->
@@ -1102,6 +1454,37 @@
     </div>
   </div>
 
+  <!-- RENTER MODAL -->
+  <div class="modal-overlay" id="renterModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="renterModalTitle">Add Renter</h2>
+        <button class="modal-close" onclick="closeRenterModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="renterForm">
+          <div class="form-grid">
+            <div class="form-group full-width"><label>Name *</label><input type="text" id="renterName" required placeholder="Full name"></div>
+            <div class="form-group"><label>Email</label><input type="email" id="renterEmail" placeholder="email@example.com"></div>
+            <div class="form-group"><label>Phone</label><input type="tel" id="renterPhone" placeholder="(555) 555-5555"></div>
+            <div class="form-group"><label>Budget Min ($/mo)</label><input type="number" id="renterBudgetMin" placeholder="1500" min="0"></div>
+            <div class="form-group"><label>Budget Max ($/mo)</label><input type="number" id="renterBudgetMax" placeholder="3000" min="0"></div>
+            <div class="form-group"><label>Bedrooms Needed</label><select id="renterBeds"><option value="">Any</option><option value="0">Studio</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4+</option></select></div>
+            <div class="form-group"><label>Move-in Date</label><input type="date" id="renterMoveIn"></div>
+            <div class="form-group full-width"><label>Preferred Neighborhoods (comma-separated)</label><input type="text" id="renterNeighborhoods" placeholder="e.g. Upper East Side, West Village, Brooklyn"></div>
+            <div class="form-group"><label>Status</label><select id="renterStatus"><option value="active">Active</option><option value="placed">Placed</option><option value="inactive">Inactive</option></select></div>
+            <div class="form-group full-width"><label>Notes</label><textarea id="renterNotes" placeholder="Notes about this renter..."></textarea></div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-danger" id="deleteRenterBtn" style="display:none;" onclick="deleteRenter()">Delete</button>
+        <button class="btn-secondary" onclick="closeRenterModal()">Cancel</button>
+        <button class="btn-primary" onclick="saveRenter()">Save Renter</button>
+      </div>
+    </div>
+  </div>
+
   <div class="toast-container" id="toastContainer"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1116,6 +1499,8 @@
     let allClients = [], allListings = [], selectedClientId = null;
     let editingClientId = null, editingListingId = null, currentView = 'cards';
     let chartInstances = {}, searchDebounce = null;
+    let allRenters = [], allMatches = [], selectedRenterId = null, editingRenterId = null;
+    let activeTab = 'inventory';
 
     function showToast(m, e=false) { const el=document.createElement('div'); el.className='toast'+(e?' error':''); el.textContent=m; document.getElementById('toastContainer').appendChild(el); setTimeout(()=>el.remove(),3500); }
     function fmtDate(d) { return d ? new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '--'; }
@@ -1133,9 +1518,18 @@
         pill.classList.add('active');
         document.querySelectorAll('.tab-content').forEach(tc=>tc.classList.remove('active'));
         document.getElementById('tab-'+pill.dataset.tab).classList.add('active');
-        const isInv = pill.dataset.tab==='inventory';
-        document.getElementById('actionBar').style.display = isInv ? 'flex' : 'none';
-        if (pill.dataset.tab==='analytics') renderCharts();
+        activeTab = pill.dataset.tab;
+
+        // Switch sidebar
+        const isRenters = activeTab === 'renters';
+        document.getElementById('sidebarClients').style.display = isRenters ? 'none' : '';
+        document.getElementById('sidebarRenters').style.display = isRenters ? '' : 'none';
+
+        // Action bar
+        document.getElementById('actionBar').style.display = activeTab === 'inventory' ? 'flex' : 'none';
+
+        if (activeTab === 'analytics') renderCharts();
+        if (activeTab === 'renters') { loadRenters(); loadMatches(); }
       });
     });
 
@@ -1393,15 +1787,20 @@
     function handleSearch() { clearTimeout(searchDebounce); searchDebounce=setTimeout(execSearch,150); }
     function execSearch() {
       const query=document.getElementById('searchInput').value.trim();
-      const fB=document.getElementById('filterBeds').value,fP=document.getElementById('filterPriceMax').value,fN=document.getElementById('filterNeighborhood').value,fS=document.getElementById('filterStatus').value,fC=document.getElementById('filterClient').value;
+      const fB=document.getElementById('filterBeds').value,fP=document.getElementById('filterPriceMax').value,fS=document.getElementById('filterStatus').value,fC=document.getElementById('filterClient').value;
       const nlf=query?parseNL(query):{};const f={...nlf};
-      if(fB)f.bedrooms=parseInt(fB);if(fP)f.priceMax=parseInt(fP);if(fN)f.neighborhood=fN;if(fS)f.status=fS;if(fC)f.clientId=fC;
+      if(fB)f.bedrooms=parseInt(fB);if(fP)f.priceMax=parseInt(fP);if(fS)f.status=fS;if(fC)f.clientId=fC;
       document.getElementById('searchParsed').innerHTML=parsedDesc(f);
       let res=[...allListings];
       if(f.bedrooms!==undefined)res=res.filter(l=>l.bedrooms===f.bedrooms);
       if(f.priceMax)res=res.filter(l=>l.price<=f.priceMax);if(f.priceMin)res=res.filter(l=>l.price>=f.priceMin);
       if(f.neighborhood)res=res.filter(l=>l.neighborhood?.toLowerCase().includes(f.neighborhood.toLowerCase()));
       if(f.borough)res=res.filter(l=>l.borough?.toLowerCase()===f.borough.toLowerCase());
+      // Multi-select neighborhood filter (include/exclude)
+      const includes=Object.entries(nhoodFilters).filter(([,v])=>v==='include').map(([k])=>k);
+      const excludes=Object.entries(nhoodFilters).filter(([,v])=>v==='exclude').map(([k])=>k);
+      if(includes.length>0)res=res.filter(l=>includes.some(n=>(l.neighborhood||'').toLowerCase()===n.toLowerCase()));
+      if(excludes.length>0)res=res.filter(l=>!excludes.some(n=>(l.neighborhood||'').toLowerCase()===n.toLowerCase()));
       if(f.status)res=res.filter(l=>l.status===f.status);if(f.clientId)res=res.filter(l=>l.client_id===f.clientId);
       if(f.featureSearch?.length)res=res.filter(l=>{const fs=(l.features||[]).join(' ').toLowerCase();return f.featureSearch.some(fw=>fs.includes(fw));});
       if(query&&!Object.keys(nlf).length){const ql=query.toLowerCase();res=res.filter(l=>[l.address,l.unit,l.neighborhood,l.borough,...(l.features||[])].filter(Boolean).join(' ').toLowerCase().includes(ql));}
@@ -1411,7 +1810,59 @@
       let html='';Object.entries(bldgs).forEach(([addr,units])=>{html+=`<div class="building-group"><div class="building-header"><div><div class="building-name">${esc(addr)}</div><div class="building-address">${units[0]?.neighborhood||''} &middot; ${units.length} result${units.length!==1?'s':''}</div></div></div><div class="unit-grid">${units.map(renderUnitCard).join('')}</div></div>`;});
       document.getElementById('searchResults').innerHTML=html;
     }
-    function populateNhoodFilter() { const ns=[...new Set(allListings.map(l=>l.neighborhood).filter(Boolean))].sort(); document.getElementById('filterNeighborhood').innerHTML='<option value="">All Neighborhoods</option>'+ns.map(n=>`<option>${n}</option>`).join(''); }
+    // Neighborhood multi-select filter
+    let nhoodFilters = {}; // { 'Brooklyn': 'include', 'Bronx': 'exclude', ... }
+
+    function populateNhoodFilter() {
+      const ns=[...new Set(allListings.map(l=>l.neighborhood).filter(Boolean))].sort();
+      const container=document.getElementById('nhoodCheckboxes');
+      container.innerHTML=ns.map(n=>{
+        const state=nhoodFilters[n]||'';
+        return `<div class="nhood-row">
+          <span class="nhood-name">${esc(n)}</span>
+          <button class="nhood-btn ${state==='include'?'include':''}" onclick="toggleNhood('${esc(n)}','include')">+</button>
+          <button class="nhood-btn ${state==='exclude'?'exclude':''}" onclick="toggleNhood('${esc(n)}','exclude')">-</button>
+        </div>`;
+      }).join('');
+      updateNhoodBtnLabel();
+    }
+
+    function toggleNhoodDropdown() {
+      const dd=document.getElementById('nhoodDropdown');
+      dd.style.display=dd.style.display==='none'?'block':'none';
+    }
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.nhood-filter-wrap')) {
+        document.getElementById('nhoodDropdown').style.display='none';
+      }
+    });
+
+    function toggleNhood(name, action) {
+      if (nhoodFilters[name]===action) { delete nhoodFilters[name]; }
+      else { nhoodFilters[name]=action; }
+      populateNhoodFilter();
+      handleSearch();
+    }
+
+    function setAllNhoods(mode) {
+      const ns=[...new Set(allListings.map(l=>l.neighborhood).filter(Boolean))];
+      if (mode==='clear') { nhoodFilters={}; }
+      else { ns.forEach(n=>nhoodFilters[n]=mode); }
+      populateNhoodFilter();
+      handleSearch();
+    }
+
+    function updateNhoodBtnLabel() {
+      const includes=Object.entries(nhoodFilters).filter(([,v])=>v==='include').length;
+      const excludes=Object.entries(nhoodFilters).filter(([,v])=>v==='exclude').length;
+      const btn=document.getElementById('nhoodFilterBtn');
+      if (includes===0&&excludes===0) btn.textContent='All Neighborhoods ▾';
+      else if (includes>0&&excludes===0) btn.textContent=includes+' included ▾';
+      else if (excludes>0&&includes===0) btn.textContent=excludes+' excluded ▾';
+      else btn.textContent=includes+' in / '+excludes+' out ▾';
+    }
 
     // Charts
     const COLORS=['#4ade80','#60a5fa','#c9a84c','#ef4444','#22d3ee','#a78bfa','#fb923c','#34d399','#818cf8','#fbbf24','#94a3b8','#f472b6'];
@@ -1439,6 +1890,289 @@
       const sc={active:0,pending:0,rented:0,inactive:0};allListings.forEach(l=>sc[l.status]=(sc[l.status]||0)+1);
       const sC={active:'#4ade80',pending:'#fbbf24',rented:'#60a5fa',inactive:'#5e5a4e'};
       chartInstances.s=new Chart(document.getElementById('chartStatus'),{type:'doughnut',data:{labels:Object.keys(sc).map(s=>s[0].toUpperCase()+s.slice(1)),datasets:[{data:Object.values(sc),backgroundColor:Object.keys(sc).map(s=>sC[s]),borderWidth:2,borderColor:'#1b2218'}]},options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{display:true,position:'bottom',labels:{padding:14,color:'#9a9483'}}}}});
+    }
+
+    /* ═══════════════════════════════════════════════════════
+       RENTERS
+       ═══════════════════════════════════════════════════════ */
+    async function loadRenters() {
+      const {data,error}=await db.from('renters').select('*').order('name');
+      if (error) { showToast('Failed to load renters: '+error.message,true); return; }
+      allRenters=data||[];
+      renderRenterSidebar();
+      renderRenterKPIs();
+      renderRenterContent();
+    }
+
+    async function loadMatches() {
+      const {data,error}=await db.from('renter_matches').select('*, rental_listings(address, unit, price, bedrooms, bathrooms, neighborhood, status)').order('created_at',{ascending:false});
+      if (error) { showToast('Failed to load matches: '+error.message,true); return; }
+      allMatches=data||[];
+      renderRenterKPIs();
+      renderRenterContent();
+    }
+
+    function renderRenterSidebar() {
+      const list=document.getElementById('renterList');
+      let html=`<div class="client-item ${!selectedRenterId?'active':''}" onclick="selectRenter(null)">
+        <span class="client-name">All Renters</span><span class="client-count">${allRenters.length}</span></div>`;
+      allRenters.forEach(r=>{
+        const statusClass = r.status==='active'?'active':r.status==='placed'?'placed':'inactive';
+        html+=`<div class="client-item ${selectedRenterId===r.id?'active':''}" onclick="selectRenter('${r.id}')" ondblclick="editRenter('${r.id}')">
+          <span class="client-name">${esc(r.name)}</span>
+          <span class="renter-status-badge ${statusClass}">${r.status}</span></div>`;
+      });
+      list.innerHTML=html;
+    }
+
+    function filterRenters() {
+      const q=document.getElementById('renterSearch').value.toLowerCase();
+      document.querySelectorAll('#renterList .client-item').forEach(el=>{
+        el.style.display=el.querySelector('.client-name').textContent.toLowerCase().includes(q)?'':'none';
+      });
+    }
+
+    function selectRenter(id) { selectedRenterId=id; renderRenterSidebar(); renderRenterContent(); }
+
+    function renderRenterKPIs() {
+      const total=allRenters.length;
+      const active=allRenters.filter(r=>r.status==='active').length;
+      const placed=allRenters.filter(r=>r.status==='placed').length;
+      const avgMatch=total?Math.round(allMatches.length/total*10)/10:0;
+      const rate=total?Math.round(placed/total*100):0;
+
+      document.getElementById('rstat-total').textContent=total;
+      document.getElementById('rstat-active').textContent=active;
+      document.getElementById('rstat-placed').textContent=placed;
+      document.getElementById('rstat-avgmatch').textContent=avgMatch;
+      document.getElementById('rstat-rate').textContent=rate+'%';
+    }
+
+    function renderRenterContent() {
+      const container=document.getElementById('renterContent');
+      if (!selectedRenterId) {
+        // Show all renters as grid
+        if (!allRenters.length) {
+          container.innerHTML=`<div class="empty-state"><h3>No renters yet</h3><p>Add your first renter to start tracking matches.</p></div>`;
+          return;
+        }
+        let html='<div class="renter-grid">';
+        allRenters.forEach(r=>{
+          const matchCount=allMatches.filter(m=>m.renter_id===r.id).length;
+          const statusClass=r.status==='active'?'active':r.status==='placed'?'placed':'inactive';
+          html+=`<div class="renter-card" onclick="selectRenter('${r.id}')">
+            <div class="renter-card-name">${esc(r.name)}</div>
+            <div class="renter-card-contact">${esc(r.email||'')}${r.email&&r.phone?' &middot; ':''}${esc(r.phone||'')}</div>
+            <div class="renter-card-prefs">
+              ${r.budget_max?`<span class="spec-tag">${fmtPrice(r.budget_min||0)}-${fmtPrice(r.budget_max)}</span>`:''}
+              ${r.bedrooms_needed!==null&&r.bedrooms_needed!==undefined?`<span class="spec-tag">${bedsLabel(r.bedrooms_needed)}</span>`:''}
+              ${(r.preferred_neighborhoods||[]).slice(0,2).map(n=>`<span class="feature-pill">${esc(n)}</span>`).join('')}
+            </div>
+            <div class="renter-card-footer">
+              <span class="renter-card-matches">${matchCount} match${matchCount!==1?'es':''}</span>
+              <span class="renter-status-badge ${statusClass}">${r.status}</span>
+            </div></div>`;
+        });
+        html+='</div>';
+        container.innerHTML=html;
+      } else {
+        // Show renter profile
+        const r=allRenters.find(x=>x.id===selectedRenterId);
+        if (!r) { container.innerHTML=''; return; }
+
+        const matches=allMatches.filter(m=>m.renter_id===r.id);
+        const nhoods=(r.preferred_neighborhoods||[]).join(', ')||'Any';
+
+        let html=`
+          <div class="renter-profile-header">
+            <div class="renter-profile-top">
+              <div>
+                <div class="renter-profile-name">${esc(r.name)}</div>
+                <div class="renter-profile-contact">${esc(r.email||'')}${r.email&&r.phone?' &middot; ':''}${esc(r.phone||'')}</div>
+              </div>
+              <div style="display:flex;gap:8px;">
+                <select class="status-select" onchange="updateRenterStatus('${r.id}',this.value)">
+                  <option value="active" ${r.status==='active'?'selected':''}>Active</option>
+                  <option value="placed" ${r.status==='placed'?'selected':''}>Placed</option>
+                  <option value="inactive" ${r.status==='inactive'?'selected':''}>Inactive</option>
+                </select>
+                <button class="btn-icon" onclick="editRenter('${r.id}')" title="Edit">&#9998;</button>
+              </div>
+            </div>
+            <div class="renter-profile-prefs">
+              <div class="renter-pref-item"><div class="renter-pref-label">Budget</div><div class="renter-pref-value">${r.budget_min||r.budget_max?fmtPrice(r.budget_min||0)+' - '+fmtPrice(r.budget_max||0):'Not set'}</div></div>
+              <div class="renter-pref-item"><div class="renter-pref-label">Bedrooms</div><div class="renter-pref-value">${r.bedrooms_needed!==null&&r.bedrooms_needed!==undefined?bedsLabel(r.bedrooms_needed):'Any'}</div></div>
+              <div class="renter-pref-item"><div class="renter-pref-label">Neighborhoods</div><div class="renter-pref-value">${esc(nhoods)}</div></div>
+              <div class="renter-pref-item"><div class="renter-pref-label">Move-in</div><div class="renter-pref-value">${r.move_in_date?fmtDate(r.move_in_date):'Flexible'}</div></div>
+            </div>
+            ${r.notes?`<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);font-size:13px;color:var(--text-secondary)">${esc(r.notes)}</div>`:''}
+          </div>
+
+          <div class="match-section-title">Matched Units (${matches.length})</div>`;
+
+        if (matches.length===0) {
+          html+=`<div style="color:var(--text-muted);font-size:13px;margin-bottom:20px;">No units matched yet. Use the search below to find and send units.</div>`;
+        } else {
+          matches.forEach(m=>{
+            const l=m.rental_listings||{};
+            const statusLabels={sent:'Sent',interested:'Interested',applied:'Applied',leased:'Leased'};
+            html+=`<div class="match-card">
+              <div class="match-info">
+                <div class="match-address">${esc(l.address||'Unknown')}${l.unit?' '+esc(l.unit):''}</div>
+                <div class="match-details">${fmtPrice(l.price)}/mo &middot; ${l.bedrooms!==undefined?bedsLabel(l.bedrooms):''} &middot; ${esc(l.neighborhood||'')}</div>
+              </div>
+              <div class="match-actions">
+                <span class="match-date">${fmtDate(m.created_at)}</span>
+                <select class="match-status-select" onchange="updateMatchStatus('${m.id}',this.value)">
+                  ${['sent','interested','applied','leased'].map(s=>`<option value="${s}" ${m.status===s?'selected':''}>${statusLabels[s]}</option>`).join('')}
+                </select>
+                <button class="btn-icon danger" onclick="deleteMatch('${m.id}')" title="Remove">&#10005;</button>
+              </div>
+            </div>`;
+          });
+        }
+
+        // Unit search section
+        html+=`
+          <div class="renter-search-section">
+            <h3>Find Units for ${esc(r.name)}</h3>
+            <input type="text" class="renter-search-input" id="renterUnitSearch" placeholder="Search by address, neighborhood, price..." oninput="searchUnitsForRenter()">
+            <div class="renter-search-results" id="renterSearchResults"></div>
+          </div>`;
+
+        container.innerHTML=html;
+      }
+    }
+
+    function searchUnitsForRenter() {
+      const q=(document.getElementById('renterUnitSearch')?.value||'').toLowerCase().trim();
+      const container=document.getElementById('renterSearchResults');
+      if (!q) { container.innerHTML=''; return; }
+
+      const existingMatches=new Set(allMatches.filter(m=>m.renter_id===selectedRenterId).map(m=>m.listing_id));
+
+      let results=allListings.filter(l=>{
+        if (existingMatches.has(l.id)) return false;
+        const searchable=[l.address,l.unit,l.neighborhood,l.borough,fmtPrice(l.price),bedsLabel(l.bedrooms),...(l.features||[])].filter(Boolean).join(' ').toLowerCase();
+        return searchable.includes(q);
+      }).slice(0,20);
+
+      if (!results.length) { container.innerHTML=`<div style="color:var(--text-muted);font-size:13px;padding:10px;">No matching units found.</div>`; return; }
+
+      const renter=allRenters.find(x=>x.id===selectedRenterId);
+      container.innerHTML=results.map(l=>
+        `<div class="send-unit-card">
+          <div>
+            <div class="send-unit-info">${esc(l.address)}${l.unit?' '+esc(l.unit):''} &middot; ${fmtPrice(l.price)}/mo</div>
+            <div class="send-unit-sub">${bedsLabel(l.bedrooms)} &middot; ${esc(l.neighborhood||'')}</div>
+          </div>
+          <button class="btn-send" onclick="sendToRenter('${l.id}')">Send to ${esc(renter?.name||'Renter')}</button>
+        </div>`
+      ).join('');
+    }
+
+    async function sendToRenter(listingId) {
+      if (!selectedRenterId) return;
+      const {error}=await db.from('renter_matches').insert({renter_id:selectedRenterId,listing_id:listingId,status:'sent'});
+      if (error) {
+        if (error.message.includes('duplicate')) showToast('Already matched',true);
+        else showToast('Failed: '+error.message,true);
+        return;
+      }
+      showToast('Unit sent!');
+      await loadMatches();
+    }
+
+    async function updateMatchStatus(matchId,status) {
+      const {error}=await db.from('renter_matches').update({status}).eq('id',matchId);
+      if (error) { showToast('Failed: '+error.message,true); return; }
+      showToast('Match status: '+status);
+      const m=allMatches.find(x=>x.id===matchId); if(m) m.status=status;
+      if (status==='leased') {
+        // Auto-update renter to placed
+        const renter=allRenters.find(x=>x.id===selectedRenterId);
+        if (renter && renter.status==='active') {
+          await db.from('renters').update({status:'placed'}).eq('id',selectedRenterId);
+          renter.status='placed';
+          renderRenterSidebar();
+          renderRenterKPIs();
+        }
+      }
+      renderRenterContent();
+    }
+
+    async function deleteMatch(matchId) {
+      if (!confirm('Remove this match?')) return;
+      const {error}=await db.from('renter_matches').delete().eq('id',matchId);
+      if (error) { showToast('Failed: '+error.message,true); return; }
+      showToast('Match removed');
+      await loadMatches();
+    }
+
+    // Renter CRUD
+    function openRenterModal(id) {
+      editingRenterId=id||null;
+      document.getElementById('renterModalTitle').textContent=id?'Edit Renter':'Add Renter';
+      document.getElementById('deleteRenterBtn').style.display=id?'':'none';
+      if (id) {
+        const r=allRenters.find(x=>x.id===id);
+        if(r){
+          document.getElementById('renterName').value=r.name||'';
+          document.getElementById('renterEmail').value=r.email||'';
+          document.getElementById('renterPhone').value=r.phone||'';
+          document.getElementById('renterBudgetMin').value=r.budget_min||'';
+          document.getElementById('renterBudgetMax').value=r.budget_max||'';
+          document.getElementById('renterBeds').value=r.bedrooms_needed??'';
+          document.getElementById('renterMoveIn').value=r.move_in_date||'';
+          document.getElementById('renterNeighborhoods').value=(r.preferred_neighborhoods||[]).join(', ');
+          document.getElementById('renterStatus').value=r.status||'active';
+          document.getElementById('renterNotes').value=r.notes||'';
+        }
+      } else { document.getElementById('renterForm').reset(); }
+      document.getElementById('renterModal').classList.add('active');
+    }
+    function closeRenterModal() { document.getElementById('renterModal').classList.remove('active'); editingRenterId=null; }
+    function editRenter(id) { openRenterModal(id); }
+
+    async function saveRenter() {
+      const name=document.getElementById('renterName').value.trim();
+      if(!name){showToast('Name required.',true);return;}
+      const nhoodRaw=document.getElementById('renterNeighborhoods').value;
+      const p={
+        name,
+        email:document.getElementById('renterEmail').value.trim()||null,
+        phone:document.getElementById('renterPhone').value.trim()||null,
+        budget_min:parseInt(document.getElementById('renterBudgetMin').value)||null,
+        budget_max:parseInt(document.getElementById('renterBudgetMax').value)||null,
+        bedrooms_needed:document.getElementById('renterBeds').value!==''?parseInt(document.getElementById('renterBeds').value):null,
+        move_in_date:document.getElementById('renterMoveIn').value||null,
+        preferred_neighborhoods:nhoodRaw?nhoodRaw.split(',').map(n=>n.trim()).filter(Boolean):[],
+        status:document.getElementById('renterStatus').value,
+        notes:document.getElementById('renterNotes').value.trim()||null,
+      };
+      const {error}=editingRenterId
+        ?await db.from('renters').update(p).eq('id',editingRenterId)
+        :await db.from('renters').insert(p);
+      if(error){showToast('Save failed: '+error.message,true);return;}
+      showToast(editingRenterId?'Renter updated':'Renter added');
+      closeRenterModal(); await loadRenters(); await loadMatches();
+    }
+
+    async function deleteRenter() {
+      if(!editingRenterId||!confirm('Delete this renter and all their matches?'))return;
+      const {error}=await db.from('renters').delete().eq('id',editingRenterId);
+      if(error){showToast('Delete failed: '+error.message,true);return;}
+      showToast('Renter deleted');
+      closeRenterModal(); if(selectedRenterId===editingRenterId)selectedRenterId=null;
+      await loadRenters(); await loadMatches();
+    }
+
+    async function updateRenterStatus(id,status) {
+      const {error}=await db.from('renters').update({status}).eq('id',id);
+      if(error){showToast('Failed: '+error.message,true);return;}
+      showToast('Status: '+status);
+      const r=allRenters.find(x=>x.id===id);if(r)r.status=status;
+      renderRenterSidebar(); renderRenterKPIs(); renderRenterContent();
     }
 
     // Init
