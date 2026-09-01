@@ -1228,6 +1228,7 @@
       <div class="tab-nav" id="tabNav">
         <button class="tab-pill active" data-tab="inventory">Inventory</button>
         <button class="tab-pill" data-tab="search">Search</button>
+        <button class="tab-pill" data-tab="leased">Leased</button>
         <button class="tab-pill" data-tab="renters">Renters</button>
         <button class="tab-pill" data-tab="analytics">Analytics</button>
       </div>
@@ -1339,6 +1340,39 @@
           </div>
           <div class="search-results-count" id="searchResultsCount"></div>
           <div id="searchResults"></div>
+        </div>
+
+        <!-- ── LEASED TAB ── -->
+        <div class="tab-content" id="tab-leased">
+          <div class="kpi-row">
+            <div class="kpi-cell">
+              <div class="kpi-label">Total Leased</div>
+              <div class="kpi-value" id="lstat-total">0</div>
+              <div class="kpi-sub" id="lstat-total-sub">&nbsp;</div>
+            </div>
+            <div class="kpi-cell">
+              <div class="kpi-label">Leased This Month</div>
+              <div class="kpi-value" id="lstat-month">0</div>
+              <div class="kpi-sub">current month</div>
+            </div>
+            <div class="kpi-cell">
+              <div class="kpi-label">Total Rent Leased</div>
+              <div class="kpi-value gold" id="lstat-rent">$0</div>
+              <div class="kpi-sub">monthly revenue</div>
+            </div>
+          </div>
+          <h2 class="section-heading">Leased Units</h2>
+          <div class="table-wrap">
+            <table>
+              <thead><tr>
+                <th>Address</th><th>Unit</th><th>Beds/Baths</th><th>Price</th>
+                <th>Neighborhood</th><th>Client</th><th>Status</th><th>Leased Date</th>
+              </tr></thead>
+              <tbody id="leased-tbody">
+                <tr class="loading-row"><td colspan="8"><span class="spinner"></span> Loading...</td></tr>
+              </tbody>
+            </table>
+          </div>
         </div>
 
         <!-- ── RENTERS TAB ── -->
@@ -1529,6 +1563,7 @@
         document.getElementById('actionBar').style.display = activeTab === 'inventory' ? 'flex' : 'none';
 
         if (activeTab === 'analytics') renderCharts();
+        if (activeTab === 'leased') renderLeasedTab();
         if (activeTab === 'renters') { loadRenters(); loadMatches(); }
       });
     });
@@ -1890,6 +1925,46 @@
       const sc={active:0,pending:0,rented:0,inactive:0};allListings.forEach(l=>sc[l.status]=(sc[l.status]||0)+1);
       const sC={active:'#4ade80',pending:'#fbbf24',rented:'#60a5fa',inactive:'#5e5a4e'};
       chartInstances.s=new Chart(document.getElementById('chartStatus'),{type:'doughnut',data:{labels:Object.keys(sc).map(s=>s[0].toUpperCase()+s.slice(1)),datasets:[{data:Object.values(sc),backgroundColor:Object.keys(sc).map(s=>sC[s]),borderWidth:2,borderColor:'#1b2218'}]},options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{display:true,position:'bottom',labels:{padding:14,color:'#9a9483'}}}}});
+    }
+
+    /* ═══════════════════════════════════════════════════════
+       LEASED TAB
+       ═══════════════════════════════════════════════════════ */
+    function renderLeasedTab() {
+      const leased = allListings.filter(l => l.status === 'rented');
+      const now = new Date();
+      const thisMonth = leased.filter(l => {
+        const d = new Date(l.updated_at);
+        return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+      });
+      const totalRent = leased.reduce((s, l) => s + (l.price || 0), 0);
+
+      document.getElementById('lstat-total').textContent = leased.length;
+      document.getElementById('lstat-total-sub').textContent = leased.length + ' units occupied';
+      document.getElementById('lstat-month').textContent = thisMonth.length;
+      document.getElementById('lstat-rent').textContent = fmtPrice(totalRent);
+
+      const tbody = document.getElementById('leased-tbody');
+      if (!leased.length) {
+        tbody.innerHTML = '<tr><td colspan="8" class="table-empty">No leased units yet.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = leased.map(l => `<tr>
+        <td class="td-primary">${esc(l.address)}</td>
+        <td>${esc(l.unit) || '--'}</td>
+        <td>${bedsLabel(l.bedrooms)} / ${l.bathrooms}BA</td>
+        <td class="td-gold">${fmtPrice(l.price)}</td>
+        <td>${esc(l.neighborhood) || '--'}</td>
+        <td>${esc(l.rental_clients?.name) || '--'}</td>
+        <td><select class="status-select" onchange="updateStatus('${l.id}',this.value)">
+          <option value="active">Vacant</option>
+          <option value="pending">Pending</option>
+          <option value="rented" selected>Rented</option>
+          <option value="inactive">Inactive</option>
+        </select></td>
+        <td>${fmtDate(l.updated_at)}</td>
+      </tr>`).join('');
     }
 
     /* ═══════════════════════════════════════════════════════

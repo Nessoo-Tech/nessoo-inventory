@@ -105,6 +105,7 @@ function syncSheet(sheet, clientId) {
       else if (label.includes('credit')) currentFields.credit_score = r;
       else if (label.includes('avail') || label.includes('avil')) currentFields.availability_date = r;
       else if (label.includes('days') || label === 'dom') currentFields.days_on_market = r;
+      else if (label === 'status' || label.includes('leased') || label.includes('vacant')) currentFields.status = r;
     }
   }
 
@@ -241,7 +242,8 @@ function buildListing(unit, clientId) {
     credit_score_min: parseInt(unit.credit_score) || null,
     availability_date: availDate,
     days_on_market: dom,
-    status: 'active',
+    status: parseStatus(unit.status),
+    is_published: parseStatus(unit.status) === 'active' || parseStatus(unit.status) === 'pending',
     source: 'google_sheets',
   };
 }
@@ -251,6 +253,15 @@ function parsePrice(val) {
   const str = String(val).replace(/[$,]/g, '').replace(/\/mo/gi, '').replace(/w\/.*$/i, '').trim();
   const num = parseInt(str);
   return isNaN(num) || num <= 0 ? null : num;
+}
+
+function parseStatus(val) {
+  if (!val) return 'active';
+  const s = String(val).toLowerCase().trim();
+  if (s.includes('leased') || s.includes('rented') || s === 'rented') return 'rented';
+  if (s.includes('pending') || s.includes('application') || s.includes('in process')) return 'pending';
+  if (s.includes('inactive') || s.includes('off market') || s.includes('unavailable')) return 'inactive';
+  return 'active';
 }
 
 function getOrCreateClient(tabName) {
