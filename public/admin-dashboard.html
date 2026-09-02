@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nessoo · Admin</title>
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=DM+Serif+Display&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <style>
+    :root {
+      --bg: #141a12;
+      --bg-raised: #1b2218;
+      --bg-surface: #222b1e;
+      --bg-card: #1e261a;
+      --bg-hover: #2a3424;
+      --border: rgba(255,255,255,.06);
+      --border-strong: rgba(255,255,255,.1);
+      --border-card: rgba(255,255,255,.08);
+      --text: #eae5d5;
+      --text-secondary: #9a9483;
+      --text-muted: #5e5a4e;
+      --gold: #c9a84c;
+      --gold-soft: rgba(201,168,76,.12);
+      --green: #4ade80;
+      --green-dark: #22c55e;
+      --green-soft: rgba(74,222,128,.1);
+      --green-muted: #3d6b3d;
+      --amber: #f59e0b;
+      --amber-soft: rgba(245,158,11,.1);
+      --red: #ef4444;
+      --red-soft: rgba(239,68,68,.1);
+      --blue: #60a5fa;
+      --blue-soft: rgba(96,165,250,.1);
+      --purple: #a78bfa;
+      --purple-soft: rgba(167,139,250,.1);
+      --font-sans: 'DM Sans', -apple-system, sans-serif;
+      --font-serif: 'DM Serif Display', Georgia, serif;
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --sidebar-w: 240px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── TOPBAR ── */
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 24px; height: 54px; flex-shrink: 0;
+      border-bottom: 1px solid var(--border); background: var(--bg-raised);
+    }
+    .topbar-left { display: flex; align-items: center; gap: 10px; }
+    .topbar-logo { color: var(--green); font-size: 20px; line-height: 1; }
+    .topbar-brand { font-size: 18px; font-weight: 800; color: var(--text); letter-spacing: -.02em; }
+    .topbar-brand span { font-weight: 400; color: var(--text-muted); margin-left: 4px; font-size: 15px; }
+    .topbar-right { display: flex; align-items: center; gap: 10px; }
+    .topbar-link {
+      padding: 6px 14px; border: 1px solid var(--border-strong); border-radius: 999px;
+      font-size: 12px; font-weight: 600; color: var(--text-secondary); background: transparent;
+      cursor: pointer; font-family: var(--font-sans); text-decoration: none; transition: all .15s;
+    }
+    .topbar-link:hover { border-color: var(--green); color: var(--green); }
+
+    /* ── LAYOUT ── */
+    .app-shell { display: flex; flex: 1; overflow: hidden; }
+
+    .sidebar {
+      width: var(--sidebar-w); flex-shrink: 0; background: var(--bg-raised);
+      border-right: 1px solid var(--border); display: flex; flex-direction: column;
+      height: calc(100vh - 54px); padding: 16px 10px;
+    }
+
+    .sidebar-label {
+      font-size: 10px; font-weight: 700; letter-spacing: .14em;
+      text-transform: uppercase; color: var(--text-muted); margin-bottom: 12px; padding: 0 8px;
+    }
+
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 12px; border-radius: var(--radius-sm);
+      cursor: pointer; transition: all .1s; margin-bottom: 2px;
+      font-size: 13px; font-weight: 500; color: var(--text-secondary);
+      border: 1px solid transparent;
+    }
+    .nav-item:hover { background: var(--bg-hover); color: var(--text); }
+    .nav-item.active { background: var(--green-soft); border-color: rgba(74,222,128,.2); color: var(--green); }
+    .nav-icon { font-size: 16px; width: 20px; text-align: center; }
+    .nav-icon-svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+    .content { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
+
+    .content-header {
+      padding: 16px 28px; border-bottom: 1px solid var(--border); background: var(--bg-raised);
+    }
+    .content-title { font-family: var(--font-serif); font-size: 22px; color: var(--text); }
+    .content-subtitle { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+    .main { flex: 1; padding: 20px 28px 40px; overflow-y: auto; }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* ── KPI ROW ── */
+    .kpi-row {
+      display: flex; background: var(--bg-raised); border: 1px solid var(--border-card);
+      border-radius: var(--radius-lg); margin-bottom: 24px; overflow: hidden;
+    }
+    .kpi-cell { flex: 1; padding: 18px 20px; border-right: 1px solid var(--border); }
+    .kpi-cell:last-child { border-right: none; }
+    .kpi-label { font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; }
+    .kpi-value { font-family: var(--font-serif); font-size: 28px; color: var(--text); line-height: 1; }
+    .kpi-value.gold { color: var(--gold); }
+    .kpi-value.green { color: var(--green); }
+    .kpi-sub { margin-top: 4px; font-size: 11px; color: var(--text-muted); }
+
+    /* ── TABLE ── */
+    .table-wrap {
+      background: var(--bg-raised); border: 1px solid var(--border-card);
+      border-radius: var(--radius-md); overflow: hidden;
+    }
+    .table-wrap table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .table-wrap thead th {
+      text-align: left; padding: 10px 14px; font-size: 10px; font-weight: 700;
+      letter-spacing: .1em; text-transform: uppercase; color: var(--text-muted);
+      border-bottom: 1px solid var(--border); background: var(--bg-surface);
+    }
+    .table-wrap tbody td { padding: 10px 14px; border-bottom: 1px solid var(--border); color: var(--text-secondary); vertical-align: middle; }
+    .table-wrap tbody tr:last-child td { border-bottom: none; }
+    .table-wrap tbody tr:hover { background: var(--bg-hover); }
+    .td-primary { color: var(--text); font-weight: 500; }
+    .table-empty { padding: 40px; text-align: center; color: var(--text-muted); }
+
+    /* ── BADGES ── */
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+    .badge-green { background: var(--green-soft); color: var(--green); }
+    .badge-amber { background: var(--amber-soft); color: var(--amber); }
+    .badge-red { background: var(--red-soft); color: var(--red); }
+    .badge-blue { background: var(--blue-soft); color: var(--blue); }
+    .badge-purple { background: var(--purple-soft); color: var(--purple); }
+    .badge-muted { background: var(--bg-surface); color: var(--text-muted); }
+
+    /* ── CHARTS ── */
+    .charts-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 14px; margin-top: 20px;
+    }
+    .chart-card {
+      background: var(--bg-raised); border: 1px solid var(--border-card);
+      border-radius: var(--radius-md); padding: 18px;
+    }
+    .chart-card h3 {
+      font-size: 10px; font-weight: 700; letter-spacing: .1em;
+      text-transform: uppercase; color: var(--text-muted); margin-bottom: 14px;
+    }
+    .chart-card canvas { max-height: 260px; }
+
+    /* ── ACTIVITY FEED ── */
+    .activity-feed { max-height: 500px; overflow-y: auto; }
+    .activity-item {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 12px 0; border-bottom: 1px solid var(--border);
+    }
+    .activity-item:last-child { border-bottom: none; }
+    .activity-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+    .activity-dot.signup { background: var(--green); }
+    .activity-dot.view { background: var(--blue); }
+    .activity-dot.connect { background: var(--purple); }
+    .activity-dot.apply { background: var(--gold); }
+    .activity-dot.error { background: var(--red); }
+    .activity-text { font-size: 13px; color: var(--text-secondary); line-height: 1.4; }
+    .activity-text strong { color: var(--text); }
+    .activity-time { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+    /* ── USER PROFILE ── */
+    .user-profile {
+      background: var(--bg-raised); border: 1px solid var(--border-card);
+      border-radius: var(--radius-lg); padding: 20px; margin-bottom: 16px;
+    }
+    .user-profile-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+    .user-profile-name { font-family: var(--font-serif); font-size: 22px; color: var(--text); }
+    .user-profile-email { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
+    .user-profile-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px; padding-top: 14px; border-top: 1px solid var(--border);
+    }
+    .user-pref-label { font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 3px; }
+    .user-pref-value { font-size: 14px; color: var(--text); font-weight: 500; }
+
+    /* ── SEARCH/FILTER BAR ── */
+    .filter-bar {
+      display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;
+    }
+    .filter-input {
+      padding: 7px 12px; border: 1px solid var(--border-strong); border-radius: var(--radius-sm);
+      font-size: 12px; font-family: var(--font-sans); background: var(--bg-surface);
+      color: var(--text); outline: none; min-width: 200px;
+    }
+    .filter-input:focus { border-color: var(--green-dark); }
+    .filter-input::placeholder { color: var(--text-muted); }
+    .filter-select {
+      padding: 7px 10px; border: 1px solid var(--border-strong); border-radius: var(--radius-sm);
+      font-size: 12px; font-weight: 500; font-family: var(--font-sans);
+      background: var(--bg-surface); color: var(--text-secondary); cursor: pointer;
+    }
+
+    /* ── LISTING PERF ── */
+    .perf-card {
+      background: var(--bg-card); border: 1px solid var(--border-card);
+      border-radius: var(--radius-md); padding: 14px; margin-bottom: 8px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .perf-rank { font-family: var(--font-serif); font-size: 20px; color: var(--text-muted); width: 36px; }
+    .perf-info { flex: 1; min-width: 0; }
+    .perf-address { font-size: 14px; font-weight: 600; color: var(--text); }
+    .perf-meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+    .perf-stat { text-align: right; }
+    .perf-stat-value { font-family: var(--font-serif); font-size: 20px; color: var(--gold); }
+    .perf-stat-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .08em; }
+
+    /* ── SECTION HEADING ── */
+    .section-heading { font-family: var(--font-serif); font-size: 20px; color: var(--text); margin-bottom: 14px; }
+
+    /* ── TOAST ── */
+    .toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 9999; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      .sidebar { display: none; }
+      .main { padding: 14px; }
+      .kpi-row { flex-direction: column; }
+      .kpi-cell { border-right: none; border-bottom: 1px solid var(--border); }
+      .kpi-cell:last-child { border-bottom: none; }
+      .charts-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <span class="topbar-logo">&#x2726;&#x2726;</span>
+      <div class="topbar-brand">nessoo<span>Admin</span></div>
+    </div>
+    <div class="topbar-right">
+      <a href="dashboard.html" class="topbar-link">Inventory Dashboard</a>
+    </div>
+  </div>
+
+  <div class="app-shell">
+    <!-- SIDEBAR NAV -->
+    <div class="sidebar">
+      <div class="sidebar-label">Admin</div>
+      <div class="nav-item active" data-tab="users" onclick="switchTab('users')">
+        <svg class="nav-icon-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> Users
+      </div>
+      <div class="nav-item" data-tab="activity" onclick="switchTab('activity')">
+        <svg class="nav-icon-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg> Activity
+      </div>
+      <div class="nav-item" data-tab="analytics" onclick="switchTab('analytics')">
+        <svg class="nav-icon-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg> Analytics
+      </div>
+      <div class="nav-item" data-tab="listings" onclick="switchTab('listings')">
+        <svg class="nav-icon-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> Listings
+      </div>
+      <div class="nav-item" data-tab="system" onclick="switchTab('system')">
+        <svg class="nav-icon-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg> System
+      </div>
+      <div class="nav-item" data-tab="revenue" onclick="switchTab('revenue')">
+        <svg class="nav-icon-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> Revenue
+      </div>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content">
+      <div class="main">
+
+        <!-- ═══ USERS TAB ═══ -->
+        <div class="tab-content active" id="tab-users">
+          <div class="kpi-row">
+            <div class="kpi-cell">
+              <div class="kpi-label">Total Users</div>
+              <div class="kpi-value" id="u-total">--</div>
+              <div class="kpi-sub">all time signups</div>
+            </div>
+            <div class="kpi-cell">
+              <div class="kpi-label">This Week</div>
+              <div class="kpi-value green" id="u-week">--</div>
+              <div class="kpi-sub">new signups</div>
+            </div>
+            <div class="kpi-cell">
+              <div class="kpi-label">Active Users</div>
+              <div class="kpi-value" id="u-active">--</div>
+              <div class="kpi-sub">logged in last 7 days</div>
+            </div>
+            <div class="kpi-cell">
+              <div class="kpi-label">Verified</div>
+              <div class="kpi-value" id="u-verified">--</div>
+              <div class="kpi-sub">completed profile</div>
+            </div>
+            <div class="kpi-cell">
+              <div class="kpi-label">Conversion Rate</div>
+              <div class="kpi-value gold" id="u-conversion">--</div>
+              <div class="kpi-sub">signup → active</div>
+            </div>
+          </div>
+
+          <div class="filter-bar">
+            <input type="text" class="filter-input" id="userSearchInput" placeholder="Search by name or email..." oninput="filterUsers()">
+            <select class="filter-select" id="userStatusFilter" onchange="filterUsers()">
+              <option value="">All Status</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+              <option value="verified">Verified</option>
+              <option value="unverified">Unverified</option>
+            </select>
+            <select class="filter-select" id="userSortFilter" onchange="filterUsers()">
+              <option value="newest">Newest First</option>
+              <option value="oldest">Oldest First</option>
+              <option value="name">Name A-Z</option>
+              <option value="lastActive">Last Active</option>
+            </select>
+            <button onclick="exportEmails()" style="padding:7px 14px;background:var(--green-dark);color:white;border:none;border-radius:var(--radius-sm);font-size:12px;font-weight:600;font-family:var(--font-sans);cursor:pointer;margin-left:auto;">Copy All Emails</button>
+            <button onclick="downloadEmails()" style="padding:7px 14px;background:var(--bg-surface);color:var(--text-secondary);border:1px solid var(--border-strong);border-radius:var(--radius-sm);font-size:12px;font-weight:600;font-family:var(--font-sans);cursor:pointer;">Download CSV</button>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead><tr>
+                <th>Name</th><th>Email</th><th>Status</th><th>Signed Up</th>
+                <th>Last Active</th><th>Preferences</th><th>Connections</th>
+              </tr></thead>
+              <tbody id="users-tbody"></tbody>
+            </table>
+          </div>
+
+        </div>
+
+        <!-- ═══ ACTIVITY TAB ═══ -->
+        <div class="tab-content" id="tab-activity">
+          <div class="kpi-row">
+            <div class="kpi-cell">
+              <div class="kpi-label">Events Today</div>
+              <div class="kpi-value" id="a-today">--</div>
+              <div class="kpi-sub">platform actions</div>
+            </div>
+            <div class="kpi-cell">
+              <div class="kpi-label">Signups Today</div>
+              <div class="kpi-value green" id="a-signups">--</div>
+              <div class="kpi-sub">new accounts</div>
+            </div>
+            <div class="kpi-cell">
+              <div class="kpi-label">Connections Made</div>
+              <div class="kpi-value" id="a-connections">--</div>
+              <div class="kpi-sub">today</div>
+            </div>
+            <div class="kpi-cell">
+              <div class="kpi-label">Listings Viewed</div>
+              <div class="kpi-value" id="a-views">--</div>
+              <div class="kpi-sub">today</div>
+            </div>
+          </div>
+
+          <div class="filter-bar">
+            <select class="filter-select" id="activityTypeFilter" onchange="filterActivity()">
+              <option value="">All Events</option>
+              <option value="signup">Signups</option>
+              <option value="view">Views</option>
+              <option value="connect">Connections</option>
+              <option value="apply">Applications</option>
+            </select>
+          </div>
+
+          <h3 class="section-heading">Live Activity Feed</h3>
+          <div class="table-wrap" style="padding:16px;">
+            <div class="activity-feed" id="activityFeed"></div>
+          </div>
+        </div>
+
+        <!-- ═══ ANALYTICS TAB ═══ -->
+        <div class="tab-content" id="tab-analytics">
+          <div class="kpi-row">
+            <div class="kpi-cell">
+              <div class="kpi-label">Total Signups</div>
+              <div class="kpi-value" id="an-total">--</div>
+              <div class="kpi-sub">all time</div>
+            </div>
+            <div class="kpi-cell">
+              <div class="kpi-label">Monthly Growth</div>
+              <div class="kpi-value green" id="an-growth">--</div>
+              <div class="kpi-sub">vs last month</div>
+            </div>
+            <div class="kpi-cell">
+              <div class="kpi-label">Avg Session</div>
+              <div class="kpi-value" id="an-session">--</div>
+              <div class="kpi-sub">minutes</div>
+            </div>
+            <div class="kpi-cell">
+              <div class="kpi-label">Retention (7d)</div>
+              <div class="kpi-value gold" id="an-retention">--</div>
+              <div class="kpi-sub">came back within 7 days</div>
+            </div>
+          </div>
+
+          <div class="charts-grid">
+            <div class="chart-card"><h3>Signups Over Time</h3><canvas id="chartSignups"></canvas></div>
+            <div class="chart-card"><h3>Daily Active Users</h3><canvas id="chartDAU"></canvas></div>
+            <div class="chart-card"><h3>Conversion Funnel</h3><canvas id="chartFunnel"></canvas></div>
+            <div class="chart-card"><h3>User Preferences</h3><canvas id="chartPrefs"></canvas></div>
+            <div class="chart-card"><h3>Top Neighborhoods</h3><canvas id="chartTopNhoods"></canvas></div>
+            <div class="chart-card"><h3>Budget Distribution</h3><canvas id="chartBudgets"></canvas></div>
+          </div>
+        </div>
+
+        <!-- ═══ LISTING PERFORMANCE TAB ═══ -->
+        <div class="tab-content" id="tab-listings">
+          <div class="kpi-row">
+            <div class="kpi-cell">
+              <div class="kpi-label">Most Viewed</div>
+              <div class="kpi-value" id="lp-views">--</div>
+              <div class="kpi-sub">views on top listing</div>
+            </div>
+            <div class="kpi-cell">
+              <div class="kpi-label">Most Connected</div>
+              <div class="kpi-value" id="lp-connects">--</div>
+              <div class="kpi-sub">connections on top listing</div>
+            </div>
+            <div class="kpi-cell">
+              <div class="kpi-label">Avg Time to Connect</div>
+              <div class="kpi-value" id="lp-time">--</div>
+              <div class="kpi-sub">hours after listing</div>
+            </div>
+            <div class="kpi-cell">
+              <div class="kpi-label">No Activity</div>
+              <div class="kpi-value gold" id="lp-dead">--</div>
+              <div class="kpi-sub">listings with 0 views</div>
+            </div>
+          </div>
+
+          <h3 class="section-heading">Top Performing Listings</h3>
+          <div id="topListings"></div>
+
+          <h3 class="section-heading" style="margin-top:24px;">Listings With No Activity</h3>
+          <div id="deadListings"></div>
+        </div>
+
+        <!-- ═══ SYSTEM HEALTH TAB ═══ -->
+        <div class="tab-content" id="tab-system">
+          <div class="kpi-row">
+            <div class="kpi-cell">
+              <div class="kpi-label">API Uptime</div>
+              <div class="kpi-value green" id="sys-uptime">--</div>
+              <div class="kpi-sub">last 30 days</div>
+            </div>
+            <div class="kpi-cell">
+              <div class="kpi-label">Avg Response Time</div>
+              <div class="kpi-value" id="sys-response">--</div>
+              <div class="kpi-sub">milliseconds</div>
+            </div>
+            <div class="kpi-cell">
+              <div class="kpi-label">Errors (24h)</div>
+              <div class="kpi-value" id="sys-errors">--</div>
+              <div class="kpi-sub">failed requests</div>
+            </div>
+            <div class="kpi-cell">
+              <div class="kpi-label">DB Size</div>
+              <div class="kpi-value" id="sys-db">--</div>
+              <div class="kpi-sub">storage used</div>
+            </div>
+          </div>
+
+          <div class="charts-grid">
+            <div class="chart-card"><h3>Response Time (24h)</h3><canvas id="chartResponse"></canvas></div>
+            <div class="chart-card"><h3>Error Rate</h3><canvas id="chartErrors"></canvas></div>
+          </div>
+        </div>
+
+        <!-- ═══ REVENUE TAB ═══ -->
+        <div class="tab-content" id="tab-revenue">
+          <div class="kpi-row">
+            <div class="kpi-cell">
+              <div class="kpi-label">Monthly Revenue</div>
+              <div class="kpi-value gold" id="rev-monthly">--</div>
+              <div class="kpi-sub">current month</div>
+            </div>
+            <div class="kpi-cell">
+              <div class="kpi-label">Total Revenue</div>
+              <div class="kpi-value" id="rev-total">--</div>
+              <div class="kpi-sub">all time</div>
+            </div>
+            <div class="kpi-cell">
+              <div class="kpi-label">Paying Clients</div>
+              <div class="kpi-value" id="rev-clients">--</div>
+              <div class="kpi-sub">active subscriptions</div>
+            </div>
+            <div class="kpi-cell">
+              <div class="kpi-label">Avg Revenue/User</div>
+              <div class="kpi-value" id="rev-arpu">--</div>
+              <div class="kpi-sub">ARPU</div>
+            </div>
+          </div>
+
+          <div class="charts-grid">
+            <div class="chart-card"><h3>Revenue Over Time</h3><canvas id="chartRevenue"></canvas></div>
+            <div class="chart-card"><h3>Revenue by Source</h3><canvas id="chartRevSource"></canvas></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- USER PROFILE MODAL -->
+  <div class="modal-overlay" id="userModal" onclick="if(event.target===this)closeUserModal()">
+    <div class="modal" style="width:600px;">
+      <div class="modal-header">
+        <h2 id="userModalName">User Profile</h2>
+        <button class="modal-close" onclick="closeUserModal()">&times;</button>
+      </div>
+      <div class="modal-body" id="userModalBody"></div>
+    </div>
+  </div>
+
+  <style>
+    .modal-overlay {
+      display:none; position:fixed; inset:0; background:rgba(0,0,0,.6);
+      backdrop-filter:blur(4px); z-index:100; align-items:center; justify-content:center;
+    }
+    .modal-overlay.active { display:flex; }
+    .modal {
+      background:var(--bg-raised); border:1px solid var(--border-strong);
+      border-radius:var(--radius-lg); max-width:95vw; max-height:85vh;
+      overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,.5);
+    }
+    .modal-header {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:18px 22px; border-bottom:1px solid var(--border);
+    }
+    .modal-header h2 { font-family:var(--font-serif); font-size:18px; }
+    .modal-close {
+      width:28px; height:28px; border:none; background:var(--bg-surface);
+      border-radius:6px; cursor:pointer; font-size:16px; color:var(--text-muted);
+      display:flex; align-items:center; justify-content:center;
+    }
+    .modal-close:hover { background:var(--red-soft); color:var(--red); }
+    .modal-body { padding:22px; }
+  </style>
+
+  <script>
+    // ═══════════════════════════════════════════════════════════
+    // DATA SOURCE CONFIGURATION
+    // Your developers swap in the real endpoints here.
+    //
+    // Option A: AWS direct
+    //   const API_BASE = 'https://your-aws-api.com/admin';
+    //
+    // Option B: Supabase
+    //   const API_BASE = 'https://xwwvlydkdjdxchgsksjv.supabase.co/rest/v1';
+    //   Add headers: { apikey: '...', Authorization: 'Bearer ...' }
+    //
+    // For now: using mock data so Aiden can review the design.
+    // ═══════════════════════════════════════════════════════════
+
+    const USE_MOCK = true; // Set to false when AWS is connected
+
+    // ── API FUNCTIONS — Replace internals with real fetch calls ──
+
+    async function fetchUsers() {
+      if (USE_MOCK) return MOCK.users;
+      // const res = await fetch(API_BASE + '/users', { headers });
+      // return await res.json();
+    }
+
+    async function fetchActivity() {
+      if (USE_MOCK) return MOCK.activity;
+      // const res = await fetch(API_BASE + '/events?limit=50', { headers });
+      // return await res.json();
+    }
+
+    async function fetchAnalytics() {
+      if (USE_MOCK) return MOCK.analytics;
+      // const res = await fetch(API_BASE + '/analytics', { headers });
+      // return await res.json();
+    }
+
+    async function fetchListingPerformance() {
+      if (USE_MOCK) return MOCK.listingPerf;
+      // const res = await fetch(API_BASE + '/listings/performance', { headers });
+      // return await res.json();
+    }
+
+    async function fetchSystemHealth() {
+      if (USE_MOCK) return MOCK.system;
+      // const res = await fetch(API_BASE + '/system/health', { headers });
+      // return await res.json();
+    }
+
+    async function fetchRevenue() {
+      if (USE_MOCK) return MOCK.revenue;
+      // const res = await fetch(API_BASE + '/revenue', { headers });
+      // return await res.json();
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // MOCK DATA
+    // ═══════════════════════════════════════════════════════════
+
+    const MOCK = {
+      users: [
+        { id: 1, name: 'Sarah Chen', email: 'sarah.chen@gmail.com', status: 'active', verified: true, signedUp: '2026-08-15', lastActive: '2026-09-01', preferences: { budget: '$2,000-$3,000', beds: '1BR', neighborhoods: ['West Village', 'Chelsea'] }, connections: 4 },
+        { id: 2, name: 'Marcus Johnson', email: 'marcus.j@outlook.com', status: 'active', verified: true, signedUp: '2026-08-18', lastActive: '2026-08-31', preferences: { budget: '$1,500-$2,500', beds: '2BR', neighborhoods: ['Harlem', 'Bed-Stuy'] }, connections: 7 },
+        { id: 3, name: 'Emily Rodriguez', email: 'emily.r@yahoo.com', status: 'active', verified: false, signedUp: '2026-08-22', lastActive: '2026-08-30', preferences: { budget: '$3,000-$4,500', beds: 'Studio', neighborhoods: ['Upper East Side'] }, connections: 2 },
+        { id: 4, name: 'David Kim', email: 'dkim92@gmail.com', status: 'inactive', verified: true, signedUp: '2026-08-10', lastActive: '2026-08-20', preferences: { budget: '$2,500-$3,500', beds: '2BR', neighborhoods: ['Brooklyn', 'Queens'] }, connections: 5 },
+        { id: 5, name: 'Aisha Patel', email: 'aisha.p@gmail.com', status: 'active', verified: true, signedUp: '2026-08-25', lastActive: '2026-09-01', preferences: { budget: '$1,800-$2,800', beds: '1BR', neighborhoods: ['East Village', 'Lower East Side'] }, connections: 3 },
+        { id: 6, name: 'James O\'Brien', email: 'jobrien@proton.me', status: 'active', verified: true, signedUp: '2026-08-28', lastActive: '2026-09-01', preferences: { budget: '$2,200-$3,200', beds: '1BR', neighborhoods: ['Williamsburg'] }, connections: 1 },
+        { id: 7, name: 'Lisa Wang', email: 'lisa.wang@gmail.com', status: 'active', verified: false, signedUp: '2026-08-30', lastActive: '2026-08-31', preferences: { budget: '$4,000-$6,000', beds: '2BR', neighborhoods: ['Tribeca', 'Soho'] }, connections: 0 },
+        { id: 8, name: 'Omar Hassan', email: 'omar.h@outlook.com', status: 'active', verified: true, signedUp: '2026-08-29', lastActive: '2026-09-01', preferences: { budget: '$1,500-$2,000', beds: 'Studio', neighborhoods: ['Bronx', 'Harlem'] }, connections: 6 },
+        { id: 9, name: 'Rachel Green', email: 'rgreen@gmail.com', status: 'inactive', verified: true, signedUp: '2026-07-15', lastActive: '2026-08-10', preferences: { budget: '$3,500-$5,000', beds: '3BR', neighborhoods: ['Park Slope'] }, connections: 8 },
+        { id: 10, name: 'Tyler Brooks', email: 'tyler.b@icloud.com', status: 'active', verified: true, signedUp: '2026-08-31', lastActive: '2026-09-01', preferences: { budget: '$2,000-$2,800', beds: '1BR', neighborhoods: ['Astoria', 'Long Island City'] }, connections: 0 },
+      ],
+      activity: [
+        { type: 'signup', user: 'Tyler Brooks', detail: 'Created account', time: '2 min ago' },
+        { type: 'connect', user: 'Omar Hassan', detail: 'Connected with 130 East 177th St #9B', time: '15 min ago' },
+        { type: 'view', user: 'Sarah Chen', detail: 'Viewed 250 Broome Street #2', time: '22 min ago' },
+        { type: 'apply', user: 'Marcus Johnson', detail: 'Applied to 1735 York Avenue #19E', time: '45 min ago' },
+        { type: 'signup', user: 'Lisa Wang', detail: 'Created account', time: '1 hour ago' },
+        { type: 'connect', user: 'Aisha Patel', detail: 'Connected with 420 East 117th St #4', time: '1 hour ago' },
+        { type: 'view', user: 'James O\'Brien', detail: 'Viewed 6645 Broadway #7A', time: '2 hours ago' },
+        { type: 'connect', user: 'Marcus Johnson', detail: 'Connected with 48 Bedford St #3C', time: '2 hours ago' },
+        { type: 'view', user: 'Emily Rodriguez', detail: 'Viewed 1735 York Avenue #PH38C', time: '3 hours ago' },
+        { type: 'apply', user: 'Rachel Green', detail: 'Applied to 953 Columbus Avenue #3N', time: '3 hours ago' },
+        { type: 'signup', user: 'Omar Hassan', detail: 'Created account', time: '4 hours ago' },
+        { type: 'connect', user: 'David Kim', detail: 'Connected with 1524 Sheepshead Bay Road #12E', time: '5 hours ago' },
+      ],
+      analytics: {
+        totalSignups: 847,
+        monthlyGrowth: '+23%',
+        avgSession: '4.2',
+        retention7d: '68%',
+        signupsByDay: [12, 18, 15, 22, 19, 28, 31, 25, 33, 27, 35, 29, 38, 42],
+        dauByDay: [45, 52, 48, 61, 58, 72, 85, 78, 91, 88, 95, 102, 98, 110],
+        funnel: { visited: 2400, signedUp: 847, completedProfile: 612, firstConnection: 394 },
+        topNeighborhoods: { 'West Village': 89, 'Williamsburg': 76, 'Upper East Side': 68, 'Harlem': 54, 'Chelsea': 51, 'Bed-Stuy': 48, 'East Village': 45, 'Astoria': 38 },
+        budgetDist: { '$1-1.5k': 45, '$1.5-2k': 120, '$2-2.5k': 185, '$2.5-3k': 210, '$3-4k': 165, '$4-5k': 82, '$5k+': 40 },
+        prefBeds: { 'Studio': 95, '1BR': 342, '2BR': 285, '3BR': 98, '4BR+': 27 },
+      },
+      listingPerf: {
+        top: [
+          { address: '250 Broome Street #2', neighborhood: 'Lower East Side', views: 342, connections: 28, price: '$3,600' },
+          { address: '1735 York Avenue #19E', neighborhood: 'Upper East Side', views: 287, connections: 22, price: '$5,600' },
+          { address: '48 Bedford St #3C', neighborhood: 'West Village', views: 256, connections: 19, price: '$6,595' },
+          { address: '6645 Broadway #7A', neighborhood: 'Bronx', views: 198, connections: 15, price: '$2,875' },
+          { address: '420 East 117th St #4', neighborhood: 'East Harlem', views: 176, connections: 12, price: '$3,295' },
+        ],
+        dead: [
+          { address: '130 East 177th St #10D', neighborhood: 'Bronx', daysListed: 14, price: '$2,858' },
+          { address: '130 East 177th St #11D', neighborhood: 'Bronx', daysListed: 14, price: '$2,858' },
+          { address: '303 Washington St #4I', neighborhood: 'Newark', daysListed: 21, price: '$0' },
+        ],
+        avgTimeToConnect: '18',
+        noActivityCount: 42,
+      },
+      system: {
+        uptime: '99.97%',
+        avgResponse: '124ms',
+        errors24h: 3,
+        dbSize: '2.4 GB',
+        responseByHour: [110, 98, 85, 92, 105, 115, 132, 158, 145, 138, 125, 118, 112, 128, 142, 155, 148, 135, 122, 115, 108, 102, 95, 88],
+        errorsByDay: [1, 0, 2, 1, 0, 0, 3, 1, 2, 0, 1, 0, 0, 3],
+      },
+      revenue: {
+        monthly: '$12,450',
+        total: '$84,200',
+        payingClients: 18,
+        arpu: '$14.70',
+        byMonth: [4200, 5100, 6800, 7500, 8900, 9200, 10400, 11200, 12450],
+        bySrc: { 'Landlord Fees': 45, 'Premium Listings': 30, 'Renter Services': 25 },
+      }
+    };
+
+    // ═══════════════════════════════════════════════════════════
+    // HELPERS
+    // ═══════════════════════════════════════════════════════════
+    function esc(s) { return s ? s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') : ''; }
+    function fmtDate(d) { return d ? new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '--'; }
+
+    let allUsers = [], allActivity = [], selectedUserId = null;
+    let chartInstances = {};
+
+    // ═══════════════════════════════════════════════════════════
+    // TAB SWITCHING
+    // ═══════════════════════════════════════════════════════════
+    function switchTab(tab) {
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.tab === tab));
+      document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+      document.getElementById('tab-' + tab).classList.add('active');
+      if (tab === 'analytics') renderAnalyticsCharts();
+      if (tab === 'system') renderSystemCharts();
+      if (tab === 'revenue') renderRevenueCharts();
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // USERS
+    // ═══════════════════════════════════════════════════════════
+    async function loadUsers() {
+      allUsers = await fetchUsers();
+      renderUserKPIs();
+      renderUsersTable(allUsers);
+    }
+
+    function renderUserKPIs() {
+      const total = allUsers.length;
+      const active = allUsers.filter(u => u.status === 'active').length;
+      const verified = allUsers.filter(u => u.verified).length;
+      const thisWeek = allUsers.filter(u => { const d = new Date(u.signedUp); const w = new Date(); w.setDate(w.getDate()-7); return d >= w; }).length;
+      const conv = total ? Math.round(active/total*100) : 0;
+      document.getElementById('u-total').textContent = total;
+      document.getElementById('u-week').textContent = thisWeek;
+      document.getElementById('u-active').textContent = active;
+      document.getElementById('u-verified').textContent = verified;
+      document.getElementById('u-conversion').textContent = conv + '%';
+    }
+
+    function renderUsersTable(users) {
+      const tbody = document.getElementById('users-tbody');
+      if (!users.length) { tbody.innerHTML = '<tr><td colspan="7" class="table-empty">No users found.</td></tr>'; return; }
+      tbody.innerHTML = users.map(u => `<tr onclick="showUserDetail(${u.id})" style="cursor:pointer">
+        <td class="td-primary">${esc(u.name)}</td>
+        <td>${esc(u.email)}</td>
+        <td><span class="badge ${u.status==='active'?'badge-green':'badge-muted'}">${u.status}</span>
+            ${u.verified?'<span class="badge badge-blue" style="margin-left:4px;">verified</span>':''}</td>
+        <td>${fmtDate(u.signedUp)}</td>
+        <td>${fmtDate(u.lastActive)}</td>
+        <td>${u.preferences?.beds||'--'} &middot; ${u.preferences?.budget||'--'}</td>
+        <td>${u.connections}</td>
+      </tr>`).join('');
+    }
+
+    function filterUsers() {
+      const q = document.getElementById('userSearchInput').value.toLowerCase();
+      const status = document.getElementById('userStatusFilter').value;
+      const sort = document.getElementById('userSortFilter').value;
+      let filtered = [...allUsers];
+      if (q) filtered = filtered.filter(u => u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q));
+      if (status === 'active') filtered = filtered.filter(u => u.status === 'active');
+      else if (status === 'inactive') filtered = filtered.filter(u => u.status === 'inactive');
+      else if (status === 'verified') filtered = filtered.filter(u => u.verified);
+      else if (status === 'unverified') filtered = filtered.filter(u => !u.verified);
+      if (sort === 'newest') filtered.sort((a,b) => new Date(b.signedUp) - new Date(a.signedUp));
+      else if (sort === 'oldest') filtered.sort((a,b) => new Date(a.signedUp) - new Date(b.signedUp));
+      else if (sort === 'name') filtered.sort((a,b) => a.name.localeCompare(b.name));
+      else if (sort === 'lastActive') filtered.sort((a,b) => new Date(b.lastActive) - new Date(a.lastActive));
+      renderUsersTable(filtered);
+    }
+
+    function showUserDetail(userId) {
+      const u = allUsers.find(x => x.id === userId);
+      if (!u) return;
+      const nhoods = u.preferences?.neighborhoods?.join(', ') || 'Not set';
+      document.getElementById('userModalName').textContent = u.name;
+      document.getElementById('userModalBody').innerHTML = `
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+          <div>
+            <div style="font-size:13px;color:var(--text-secondary);">${esc(u.email)}</div>
+          </div>
+          <div>
+            <span class="badge ${u.status==='active'?'badge-green':'badge-muted'}">${u.status}</span>
+            ${u.verified?'<span class="badge badge-blue" style="margin-left:4px;">verified</span>':''}
+          </div>
+        </div>
+        <div class="user-profile-grid">
+          <div><div class="user-pref-label">Budget</div><div class="user-pref-value">${u.preferences?.budget||'Not set'}</div></div>
+          <div><div class="user-pref-label">Bedrooms</div><div class="user-pref-value">${u.preferences?.beds||'Not set'}</div></div>
+          <div><div class="user-pref-label">Neighborhoods</div><div class="user-pref-value">${esc(nhoods)}</div></div>
+          <div><div class="user-pref-label">Signed Up</div><div class="user-pref-value">${fmtDate(u.signedUp)}</div></div>
+          <div><div class="user-pref-label">Last Active</div><div class="user-pref-value">${fmtDate(u.lastActive)}</div></div>
+          <div><div class="user-pref-label">Connections</div><div class="user-pref-value">${u.connections}</div></div>
+        </div>
+        <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
+          <h3 style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px;">Recent Activity</h3>
+          ${allActivity.filter(a=>a.user===u.name).map(a=>`
+            <div class="activity-item" style="padding:8px 0;">
+              <div class="activity-dot ${a.type}"></div>
+              <div><div class="activity-text">${esc(a.detail)}</div><div class="activity-time">${esc(a.time)}</div></div>
+            </div>`).join('') || '<div style="font-size:13px;color:var(--text-muted);">No recent activity</div>'}
+        </div>`;
+      document.getElementById('userModal').classList.add('active');
+    }
+
+    function closeUserModal() {
+      document.getElementById('userModal').classList.remove('active');
+    }
+
+    function exportEmails() {
+      const emails = allUsers.map(u => u.email).filter(Boolean).join(', ');
+      navigator.clipboard.writeText(emails).then(() => {
+        alert('Copied ' + allUsers.length + ' emails to clipboard!');
+      });
+    }
+
+    function downloadEmails() {
+      const csv = 'Name,Email,Status,Signed Up\n' + allUsers.map(u =>
+        `"${u.name}","${u.email}","${u.status}","${u.signedUp}"`
+      ).join('\n');
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'nessoo-users-' + new Date().toISOString().split('T')[0] + '.csv';
+      a.click();
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // ACTIVITY
+    // ═══════════════════════════════════════════════════════════
+    async function loadActivity() {
+      allActivity = await fetchActivity();
+      renderActivityKPIs();
+      renderActivityFeed(allActivity);
+    }
+
+    function renderActivityKPIs() {
+      document.getElementById('a-today').textContent = allActivity.length;
+      document.getElementById('a-signups').textContent = allActivity.filter(a => a.type === 'signup').length;
+      document.getElementById('a-connections').textContent = allActivity.filter(a => a.type === 'connect').length;
+      document.getElementById('a-views').textContent = allActivity.filter(a => a.type === 'view').length;
+    }
+
+    function renderActivityFeed(events) {
+      const feed = document.getElementById('activityFeed');
+      const typeLabels = { signup: 'signed up', view: 'viewed a listing', connect: 'made a connection', apply: 'submitted an application' };
+      feed.innerHTML = events.map(e => `
+        <div class="activity-item">
+          <div class="activity-dot ${e.type}"></div>
+          <div>
+            <div class="activity-text"><strong>${esc(e.user)}</strong> ${esc(e.detail)}</div>
+            <div class="activity-time">${esc(e.time)}</div>
+          </div>
+        </div>`).join('');
+    }
+
+    function filterActivity() {
+      const type = document.getElementById('activityTypeFilter').value;
+      const filtered = type ? allActivity.filter(a => a.type === type) : allActivity;
+      renderActivityFeed(filtered);
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // LISTING PERFORMANCE
+    // ═══════════════════════════════════════════════════════════
+    async function loadListingPerf() {
+      const data = await fetchListingPerformance();
+      document.getElementById('lp-views').textContent = data.top[0]?.views || '--';
+      document.getElementById('lp-connects').textContent = data.top[0]?.connections || '--';
+      document.getElementById('lp-time').textContent = data.avgTimeToConnect + 'h';
+      document.getElementById('lp-dead').textContent = data.noActivityCount;
+
+      document.getElementById('topListings').innerHTML = data.top.map((l, i) => `
+        <div class="perf-card">
+          <div class="perf-rank">#${i+1}</div>
+          <div class="perf-info">
+            <div class="perf-address">${esc(l.address)}</div>
+            <div class="perf-meta">${esc(l.neighborhood)} &middot; ${l.price}</div>
+          </div>
+          <div class="perf-stat">
+            <div class="perf-stat-value">${l.views}</div>
+            <div class="perf-stat-label">views</div>
+          </div>
+          <div class="perf-stat" style="margin-left:20px;">
+            <div class="perf-stat-value" style="color:var(--green)">${l.connections}</div>
+            <div class="perf-stat-label">connects</div>
+          </div>
+        </div>`).join('');
+
+      document.getElementById('deadListings').innerHTML = data.dead.map(l => `
+        <div class="perf-card">
+          <div class="perf-info">
+            <div class="perf-address">${esc(l.address)}</div>
+            <div class="perf-meta">${esc(l.neighborhood)} &middot; ${l.price} &middot; ${l.daysListed} days listed</div>
+          </div>
+          <span class="badge badge-red">No activity</span>
+        </div>`).join('');
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // CHARTS
+    // ═══════════════════════════════════════════════════════════
+    const COLORS = ['#4ade80','#60a5fa','#c9a84c','#ef4444','#a78bfa','#22d3ee','#fb923c','#34d399'];
+
+    async function renderAnalyticsCharts() {
+      const data = await fetchAnalytics();
+      Object.values(chartInstances).forEach(c => c.destroy()); chartInstances = {};
+      Chart.defaults.color = '#5e5a4e'; Chart.defaults.font.family = "'DM Sans', sans-serif";
+      const bo = { responsive:true, maintainAspectRatio:true, plugins:{legend:{display:false}}, scales:{x:{ticks:{color:'#5e5a4e'},grid:{display:false}},y:{ticks:{color:'#5e5a4e'},grid:{color:'rgba(255,255,255,.04)'}}} };
+
+      document.getElementById('an-total').textContent = data.totalSignups;
+      document.getElementById('an-growth').textContent = data.monthlyGrowth;
+      document.getElementById('an-session').textContent = data.avgSession;
+      document.getElementById('an-retention').textContent = data.retention7d;
+
+      const days = data.signupsByDay.map((_,i) => 'Day '+(i+1));
+      chartInstances.s = new Chart(document.getElementById('chartSignups'), { type:'line', data:{labels:days,datasets:[{data:data.signupsByDay,borderColor:COLORS[0],backgroundColor:'rgba(74,222,128,.1)',fill:true,tension:.3,pointRadius:3}]}, options:bo });
+      chartInstances.dau = new Chart(document.getElementById('chartDAU'), { type:'line', data:{labels:days,datasets:[{data:data.dauByDay,borderColor:COLORS[1],backgroundColor:'rgba(96,165,250,.1)',fill:true,tension:.3,pointRadius:3}]}, options:bo });
+
+      const f = data.funnel;
+      chartInstances.fun = new Chart(document.getElementById('chartFunnel'), { type:'bar', data:{labels:['Visited','Signed Up','Profile Done','1st Connect'],datasets:[{data:[f.visited,f.signedUp,f.completedProfile,f.firstConnection],backgroundColor:[COLORS[1],COLORS[0],COLORS[2],COLORS[4]],borderRadius:4}]}, options:bo });
+
+      const bedLabels = Object.keys(data.prefBeds);
+      chartInstances.prefs = new Chart(document.getElementById('chartPrefs'), { type:'doughnut', data:{labels:bedLabels,datasets:[{data:Object.values(data.prefBeds),backgroundColor:COLORS.slice(0,bedLabels.length),borderWidth:2,borderColor:'#1b2218'}]}, options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{display:true,position:'bottom',labels:{padding:12,color:'#9a9483'}}}} });
+
+      const nh = Object.entries(data.topNeighborhoods).sort((a,b)=>b[1]-a[1]);
+      chartInstances.tn = new Chart(document.getElementById('chartTopNhoods'), { type:'bar', data:{labels:nh.map(e=>e[0]),datasets:[{data:nh.map(e=>e[1]),backgroundColor:COLORS[0],borderRadius:4,barThickness:18}]}, options:{...bo,indexAxis:'y'} });
+
+      chartInstances.bud = new Chart(document.getElementById('chartBudgets'), { type:'bar', data:{labels:Object.keys(data.budgetDist),datasets:[{data:Object.values(data.budgetDist),backgroundColor:COLORS[2],borderRadius:4}]}, options:bo });
+    }
+
+    async function renderSystemCharts() {
+      const data = await fetchSystemHealth();
+      document.getElementById('sys-uptime').textContent = data.uptime;
+      document.getElementById('sys-response').textContent = data.avgResponse;
+      document.getElementById('sys-errors').textContent = data.errors24h;
+      document.getElementById('sys-db').textContent = data.dbSize;
+
+      if (chartInstances.resp) chartInstances.resp.destroy();
+      if (chartInstances.err) chartInstances.err.destroy();
+      const bo = { responsive:true, maintainAspectRatio:true, plugins:{legend:{display:false}}, scales:{x:{ticks:{color:'#5e5a4e'},grid:{display:false}},y:{ticks:{color:'#5e5a4e'},grid:{color:'rgba(255,255,255,.04)'}}} };
+      const hours = data.responseByHour.map((_,i) => i+'h');
+      chartInstances.resp = new Chart(document.getElementById('chartResponse'), { type:'line', data:{labels:hours,datasets:[{data:data.responseByHour,borderColor:COLORS[0],backgroundColor:'rgba(74,222,128,.05)',fill:true,tension:.3,pointRadius:2}]}, options:bo });
+      chartInstances.err = new Chart(document.getElementById('chartErrors'), { type:'bar', data:{labels:data.errorsByDay.map((_,i)=>'Day '+(i+1)),datasets:[{data:data.errorsByDay,backgroundColor:COLORS[3],borderRadius:4}]}, options:bo });
+    }
+
+    async function renderRevenueCharts() {
+      const data = await fetchRevenue();
+      document.getElementById('rev-monthly').textContent = data.monthly;
+      document.getElementById('rev-total').textContent = data.total;
+      document.getElementById('rev-clients').textContent = data.payingClients;
+      document.getElementById('rev-arpu').textContent = data.arpu;
+
+      if (chartInstances.rev) chartInstances.rev.destroy();
+      if (chartInstances.revsrc) chartInstances.revsrc.destroy();
+      const bo = { responsive:true, maintainAspectRatio:true, plugins:{legend:{display:false}}, scales:{x:{ticks:{color:'#5e5a4e'},grid:{display:false}},y:{ticks:{color:'#5e5a4e'},grid:{color:'rgba(255,255,255,.04)'}}} };
+      const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep'];
+      chartInstances.rev = new Chart(document.getElementById('chartRevenue'), { type:'line', data:{labels:months,datasets:[{data:data.byMonth,borderColor:COLORS[2],backgroundColor:'rgba(201,168,76,.1)',fill:true,tension:.3,pointRadius:3}]}, options:bo });
+      chartInstances.revsrc = new Chart(document.getElementById('chartRevSource'), { type:'doughnut', data:{labels:Object.keys(data.bySrc),datasets:[{data:Object.values(data.bySrc),backgroundColor:[COLORS[0],COLORS[2],COLORS[1]],borderWidth:2,borderColor:'#1b2218'}]}, options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{display:true,position:'bottom',labels:{padding:12,color:'#9a9483'}}}} });
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // INIT
+    // ═══════════════════════════════════════════════════════════
+    (async function init() {
+      await loadUsers();
+      await loadActivity();
+      await loadListingPerf();
+    })();
+  </script>
+</body>
+</html>
