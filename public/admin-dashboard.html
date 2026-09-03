@@ -265,11 +265,17 @@
       <div class="nav-item active" data-tab="users" onclick="switchTab('users')">
         <svg class="nav-icon-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> Users
       </div>
+      <div class="nav-item" data-tab="flagged" onclick="switchTab('flagged')">
+        <svg class="nav-icon-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg> Flagged
+      </div>
       <div class="nav-item" data-tab="activity" onclick="switchTab('activity')">
         <svg class="nav-icon-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg> Activity
       </div>
       <div class="nav-item" data-tab="analytics" onclick="switchTab('analytics')">
         <svg class="nav-icon-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg> Analytics
+      </div>
+      <div class="nav-item" data-tab="searches" onclick="switchTab('searches')">
+        <svg class="nav-icon-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Search Demand
       </div>
       <div class="nav-item" data-tab="listings" onclick="switchTab('listings')">
         <svg class="nav-icon-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> Listings
@@ -288,6 +294,13 @@
 
         <!-- ═══ USERS TAB ═══ -->
         <div class="tab-content active" id="tab-users">
+          <!-- Growth Hero -->
+          <div style="text-align:center;padding:28px 0 24px;">
+            <div style="font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;">Total Platform Users</div>
+            <div id="heroCount" style="font-family:var(--font-serif);font-size:64px;color:var(--green);line-height:1;">--</div>
+            <div id="heroGrowth" style="font-size:13px;color:var(--text-secondary);margin-top:6px;"></div>
+          </div>
+
           <div class="kpi-row">
             <div class="kpi-cell">
               <div class="kpi-label">Total Users</div>
@@ -345,6 +358,55 @@
             </table>
           </div>
 
+        </div>
+
+        <!-- ═══ FLAGGED USERS TAB ═══ -->
+        <div class="tab-content" id="tab-flagged">
+          <div class="kpi-row">
+            <div class="kpi-cell">
+              <div class="kpi-label">Incomplete Profiles</div>
+              <div class="kpi-value" id="f-incomplete">--</div>
+              <div class="kpi-sub">signed up but never finished</div>
+            </div>
+            <div class="kpi-cell">
+              <div class="kpi-label">Gone Inactive</div>
+              <div class="kpi-value" id="f-inactive">--</div>
+              <div class="kpi-sub">no activity in 14+ days</div>
+            </div>
+            <div class="kpi-cell">
+              <div class="kpi-label">0 Connections</div>
+              <div class="kpi-value" id="f-noconnect">--</div>
+              <div class="kpi-sub">signed up but never connected</div>
+            </div>
+            <div class="kpi-cell">
+              <div class="kpi-label">Drop-off Rate</div>
+              <div class="kpi-value gold" id="f-dropoff">--</div>
+              <div class="kpi-sub">flagged / total users</div>
+            </div>
+          </div>
+
+          <h3 class="section-heading">Incomplete Profiles</h3>
+          <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px;">Users who signed up but never completed their profile. These are potential re-engagement targets.</p>
+          <div class="table-wrap" style="margin-bottom:24px;">
+            <table>
+              <thead><tr><th>Name</th><th>Email</th><th>Signed Up</th><th>Days Since Signup</th><th>Issue</th></tr></thead>
+              <tbody id="flagged-incomplete-tbody"></tbody>
+            </table>
+          </div>
+
+          <h3 class="section-heading">Went Inactive Fast</h3>
+          <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px;">Users who were active but stopped using the platform within their first 2 weeks.</p>
+          <div class="table-wrap" style="margin-bottom:24px;">
+            <table>
+              <thead><tr><th>Name</th><th>Email</th><th>Signed Up</th><th>Last Active</th><th>Connections</th><th>Issue</th></tr></thead>
+              <tbody id="flagged-inactive-tbody"></tbody>
+            </table>
+          </div>
+
+          <div style="display:flex;gap:8px;margin-top:16px;">
+            <button onclick="exportFlaggedEmails('incomplete')" style="padding:7px 14px;background:var(--green-dark);color:white;border:none;border-radius:var(--radius-sm);font-size:12px;font-weight:600;font-family:var(--font-sans);cursor:pointer;">Copy Incomplete Emails</button>
+            <button onclick="exportFlaggedEmails('inactive')" style="padding:7px 14px;background:var(--green-dark);color:white;border:none;border-radius:var(--radius-sm);font-size:12px;font-weight:600;font-family:var(--font-sans);cursor:pointer;">Copy Inactive Emails</button>
+          </div>
         </div>
 
         <!-- ═══ ACTIVITY TAB ═══ -->
@@ -420,6 +482,55 @@
             <div class="chart-card"><h3>User Preferences</h3><canvas id="chartPrefs"></canvas></div>
             <div class="chart-card"><h3>Top Neighborhoods</h3><canvas id="chartTopNhoods"></canvas></div>
             <div class="chart-card"><h3>Budget Distribution</h3><canvas id="chartBudgets"></canvas></div>
+          </div>
+        </div>
+
+        <!-- ═══ SEARCH DEMAND TAB ═══ -->
+        <div class="tab-content" id="tab-searches">
+          <div class="kpi-row">
+            <div class="kpi-cell">
+              <div class="kpi-label">Total Searches</div>
+              <div class="kpi-value" id="s-total">--</div>
+              <div class="kpi-sub">last 30 days</div>
+            </div>
+            <div class="kpi-cell">
+              <div class="kpi-label">Searches Today</div>
+              <div class="kpi-value green" id="s-today">--</div>
+              <div class="kpi-sub">platform searches</div>
+            </div>
+            <div class="kpi-cell">
+              <div class="kpi-label">No Results Rate</div>
+              <div class="kpi-value gold" id="s-noresults">--</div>
+              <div class="kpi-sub">searches with 0 matches</div>
+            </div>
+            <div class="kpi-cell">
+              <div class="kpi-label">Top Search</div>
+              <div class="kpi-value" id="s-top" style="font-size:18px;">--</div>
+              <div class="kpi-sub">most searched term</div>
+            </div>
+          </div>
+
+          <div class="charts-grid">
+            <div class="chart-card"><h3>Most Searched Neighborhoods</h3><canvas id="chartSearchNhoods"></canvas></div>
+            <div class="chart-card"><h3>Most Searched Bedroom Sizes</h3><canvas id="chartSearchBeds"></canvas></div>
+          </div>
+
+          <h3 class="section-heading" style="margin-top:24px;">Recent Searches</h3>
+          <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px;">What users are searching for on the platform. Gaps between demand and inventory = opportunity.</p>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>User</th><th>Search Query</th><th>Filters</th><th>Results</th><th>Time</th></tr></thead>
+              <tbody id="searches-tbody"></tbody>
+            </table>
+          </div>
+
+          <h3 class="section-heading" style="margin-top:24px;">Unmet Demand</h3>
+          <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px;">Searches that returned 0 results. These are renters you're losing because you don't have matching inventory.</p>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Search</th><th>Frequency</th><th>Last Searched</th></tr></thead>
+              <tbody id="unmet-tbody"></tbody>
+            </table>
           </div>
         </div>
 
@@ -686,6 +797,45 @@
         arpu: '$14.70',
         byMonth: [4200, 5100, 6800, 7500, 8900, 9200, 10400, 11200, 12450],
         bySrc: { 'Landlord Fees': 45, 'Premium Listings': 30, 'Renter Services': 25 },
+      },
+      searches: {
+        total: 3240,
+        today: 89,
+        noResultsRate: '12%',
+        topSearch: '2BR Brooklyn',
+        searchedNhoods: { 'Williamsburg': 342, 'West Village': 298, 'Harlem': 267, 'Bed-Stuy': 234, 'Upper East Side': 198, 'Chelsea': 187, 'East Village': 156, 'Astoria': 134 },
+        searchedBeds: { 'Studio': 410, '1BR': 1280, '2BR': 1050, '3BR': 380, '4BR+': 120 },
+        recent: [
+          { user: 'Sarah Chen', query: '1BR West Village under $3000', filters: '1BR, $2-3k, West Village', results: 8, time: '5 min ago' },
+          { user: 'Marcus Johnson', query: '2BR Brooklyn', filters: '2BR, Brooklyn', results: 23, time: '12 min ago' },
+          { user: 'Tyler Brooks', query: 'studio Astoria pet friendly', filters: 'Studio, Astoria', results: 2, time: '18 min ago' },
+          { user: 'Omar Hassan', query: '1BR Harlem under $2000', filters: '1BR, <$2k, Harlem', results: 5, time: '25 min ago' },
+          { user: 'Lisa Wang', query: '2BR Tribeca doorman', filters: '2BR, Tribeca', results: 0, time: '32 min ago' },
+          { user: 'Aisha Patel', query: '1BR East Village laundry', filters: '1BR, East Village', results: 3, time: '41 min ago' },
+          { user: 'James O\'Brien', query: '1BR Williamsburg under $3200', filters: '1BR, <$3.2k, Williamsburg', results: 11, time: '55 min ago' },
+          { user: 'Emily Rodriguez', query: 'studio UES luxury', filters: 'Studio, Upper East Side', results: 4, time: '1 hour ago' },
+        ],
+        unmet: [
+          { search: '2BR Tribeca under $4000', frequency: 28, lastSearched: '32 min ago' },
+          { search: '3BR Park Slope', frequency: 19, lastSearched: '2 hours ago' },
+          { search: 'Studio Financial District pet-friendly', frequency: 15, lastSearched: '4 hours ago' },
+          { search: '1BR Soho under $3500', frequency: 12, lastSearched: '6 hours ago' },
+          { search: '2BR Greenwich Village doorman', frequency: 9, lastSearched: '1 day ago' },
+        ],
+      },
+      flagged: {
+        incomplete: [
+          { name: 'Lisa Wang', email: 'lisa.wang@gmail.com', signedUp: '2026-08-30', daysSince: 3, issue: 'No preferences set' },
+          { name: 'Tyler Brooks', email: 'tyler.b@icloud.com', signedUp: '2026-08-31', daysSince: 2, issue: 'No preferences set' },
+          { name: 'Alex Torres', email: 'atorres@gmail.com', signedUp: '2026-08-27', daysSince: 6, issue: 'No email verified' },
+          { name: 'Jenny Liu', email: 'jenny.liu@yahoo.com', signedUp: '2026-08-20', daysSince: 13, issue: 'No preferences set' },
+          { name: 'Chris Martin', email: 'cmart@outlook.com', signedUp: '2026-08-19', daysSince: 14, issue: 'Signed up, never logged back in' },
+        ],
+        inactive: [
+          { name: 'David Kim', email: 'dkim92@gmail.com', signedUp: '2026-08-10', lastActive: '2026-08-20', connections: 5, issue: 'Was active, went silent 12 days ago' },
+          { name: 'Rachel Green', email: 'rgreen@gmail.com', signedUp: '2026-07-15', lastActive: '2026-08-10', connections: 8, issue: 'High engagement then dropped off' },
+          { name: 'Mike Adams', email: 'madams@gmail.com', signedUp: '2026-08-05', lastActive: '2026-08-12', connections: 2, issue: 'Low engagement, went inactive' },
+        ],
       }
     };
 
@@ -706,6 +856,8 @@
       document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
       document.getElementById('tab-' + tab).classList.add('active');
       if (tab === 'analytics') renderAnalyticsCharts();
+      if (tab === 'searches') loadSearches();
+      if (tab === 'flagged') loadFlagged();
       if (tab === 'system') renderSystemCharts();
       if (tab === 'revenue') renderRevenueCharts();
     }
@@ -957,10 +1109,105 @@
     // ═══════════════════════════════════════════════════════════
     // INIT
     // ═══════════════════════════════════════════════════════════
+    // ═══════════════════════════════════════════════════════════
+    // FLAGGED USERS
+    // ═══════════════════════════════════════════════════════════
+    async function loadFlagged() {
+      const data = USE_MOCK ? MOCK.flagged : await fetch(API_BASE+'/flagged').then(r=>r.json());
+      const incomplete = data.incomplete || [];
+      const inactive = data.inactive || [];
+      const total = allUsers.length || 10;
+
+      document.getElementById('f-incomplete').textContent = incomplete.length;
+      document.getElementById('f-inactive').textContent = inactive.length;
+      document.getElementById('f-noconnect').textContent = allUsers.filter(u => u.connections === 0).length;
+      document.getElementById('f-dropoff').textContent = Math.round((incomplete.length + inactive.length) / total * 100) + '%';
+
+      document.getElementById('flagged-incomplete-tbody').innerHTML = incomplete.length
+        ? incomplete.map(u => `<tr>
+            <td class="td-primary">${esc(u.name)}</td><td>${esc(u.email)}</td>
+            <td>${fmtDate(u.signedUp)}</td><td>${u.daysSince} days</td>
+            <td><span class="badge badge-amber">${esc(u.issue)}</span></td>
+          </tr>`).join('')
+        : '<tr><td colspan="5" class="table-empty">No incomplete profiles</td></tr>';
+
+      document.getElementById('flagged-inactive-tbody').innerHTML = inactive.length
+        ? inactive.map(u => `<tr>
+            <td class="td-primary">${esc(u.name)}</td><td>${esc(u.email)}</td>
+            <td>${fmtDate(u.signedUp)}</td><td>${fmtDate(u.lastActive)}</td>
+            <td>${u.connections}</td>
+            <td><span class="badge badge-red">${esc(u.issue)}</span></td>
+          </tr>`).join('')
+        : '<tr><td colspan="6" class="table-empty">No inactive users</td></tr>';
+    }
+
+    function exportFlaggedEmails(type) {
+      const data = USE_MOCK ? MOCK.flagged : {};
+      const list = type === 'incomplete' ? (data.incomplete || []) : (data.inactive || []);
+      const emails = list.map(u => u.email).join(', ');
+      navigator.clipboard.writeText(emails).then(() => {
+        alert('Copied ' + list.length + ' emails to clipboard!');
+      });
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // SEARCH DEMAND
+    // ═══════════════════════════════════════════════════════════
+    async function loadSearches() {
+      const data = USE_MOCK ? MOCK.searches : await fetch(API_BASE+'/searches').then(r=>r.json());
+
+      document.getElementById('s-total').textContent = data.total;
+      document.getElementById('s-today').textContent = data.today;
+      document.getElementById('s-noresults').textContent = data.noResultsRate;
+      document.getElementById('s-top').textContent = data.topSearch;
+
+      // Recent searches table
+      document.getElementById('searches-tbody').innerHTML = data.recent.map(s => `<tr>
+        <td class="td-primary">${esc(s.user)}</td>
+        <td>${esc(s.query)}</td>
+        <td>${esc(s.filters)}</td>
+        <td>${s.results === 0 ? '<span class="badge badge-red">0</span>' : s.results}</td>
+        <td>${esc(s.time)}</td>
+      </tr>`).join('');
+
+      // Unmet demand table
+      document.getElementById('unmet-tbody').innerHTML = data.unmet.map(s => `<tr>
+        <td class="td-primary">${esc(s.search)}</td>
+        <td><span class="badge badge-amber">${s.frequency} searches</span></td>
+        <td>${esc(s.lastSearched)}</td>
+      </tr>`).join('');
+
+      // Charts
+      if (chartInstances.sn) chartInstances.sn.destroy();
+      if (chartInstances.sb) chartInstances.sb.destroy();
+      const bo = { responsive:true, maintainAspectRatio:true, plugins:{legend:{display:false}}, scales:{x:{ticks:{color:'#5e5a4e'},grid:{display:false}},y:{ticks:{color:'#5e5a4e'},grid:{color:'rgba(255,255,255,.04)'}}} };
+
+      const nh = Object.entries(data.searchedNhoods).sort((a,b)=>b[1]-a[1]);
+      chartInstances.sn = new Chart(document.getElementById('chartSearchNhoods'), {
+        type:'bar', data:{labels:nh.map(e=>e[0]),datasets:[{data:nh.map(e=>e[1]),backgroundColor:COLORS[0],borderRadius:4,barThickness:18}]}, options:{...bo,indexAxis:'y'}
+      });
+
+      chartInstances.sb = new Chart(document.getElementById('chartSearchBeds'), {
+        type:'bar', data:{labels:Object.keys(data.searchedBeds),datasets:[{data:Object.values(data.searchedBeds),backgroundColor:COLORS[2],borderRadius:4}]}, options:bo
+      });
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // HERO COUNTER
+    // ═══════════════════════════════════════════════════════════
+    function renderHeroCount() {
+      const total = allUsers.length;
+      document.getElementById('heroCount').textContent = total.toLocaleString();
+      const thisWeek = allUsers.filter(u => { const d=new Date(u.signedUp); const w=new Date(); w.setDate(w.getDate()-7); return d>=w; }).length;
+      document.getElementById('heroGrowth').textContent = thisWeek > 0 ? '+' + thisWeek + ' this week' : '';
+    }
+
     (async function init() {
       await loadUsers();
+      renderHeroCount();
       await loadActivity();
       await loadListingPerf();
+      await loadFlagged();
     })();
   </script>
 </body>
