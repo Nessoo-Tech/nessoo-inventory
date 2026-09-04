@@ -1,0 +1,38 @@
+:root {
+  --bg: #0d0f12;
+  --surface: #14171c;
+  --surface-2: #1b1f26;
+  --border: #262b34;
+  --text: #e8eaed;
+  --text-dim: #9aa3af;
+  --text-faint: #6b7280;
+  --brand: #6ea8fe;
+  --good: #4ade80;
+  --warn: #fbbf24;
+  --bad: #f87171;
+  --radius: 10px;
+  --font: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, monospace;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--brand); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+table { border-collapse: collapse; width: 100%; }
+th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--border); font-size: 13px; }
+th { color: var(--text-faint); font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; font-size: 11px; }
+td { color: var(--text-dim); }
+
+/* Wide content scrolls inside its own container; the page never scrolls sideways. */
+.scroll-x { overflow-x: auto; max-width: 100%; }

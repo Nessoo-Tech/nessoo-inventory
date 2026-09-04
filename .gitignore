@@ -4,3 +4,17 @@ node_modules/
 *.pdf
 fb-scraper/
 fb-scraper-py/
+
+# Next.js
+/.next/
+/out/
+next-env.d.ts
+*.tsbuildinfo
+
+# env — never commit; this app holds a production database credential
+.env
+.env.local
+.env*.local
+
+# Supabase export dumps staged for the one-time migration (real PII)
+/supabase/export/
