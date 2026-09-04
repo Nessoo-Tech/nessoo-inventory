@@ -43,6 +43,12 @@ GRANT EXECUTE ON FUNCTION validate_admin_session(TEXT) TO nessoo_admin_app;
 GRANT SELECT (id, name, email, "emailVerified", "createdAt", "updatedAt", role)
   ON "user" TO nessoo_admin_app;
 
+-- Sign-in activity (daily actives) needs the session timestamps. Granting the
+-- WHOLE table would hand over `token`, which is live bearer material — an admin
+-- console could then impersonate any user. Only the three non-sensitive columns
+-- are granted; token, ipAddress and userAgent stay unreachable.
+GRANT SELECT ("userId", "createdAt", "updatedAt") ON session TO nessoo_admin_app;
+
 -- excludes: phone, stripe_customer_id, onboarding_answers (free-text PII)
 GRANT SELECT (user_id, platform_role, onboarding_completed, onboarding_step,
               signup_host, signup_market, signup_market_backfilled,
@@ -79,7 +85,9 @@ GRANT SELECT ON subscriptions        TO nessoo_admin_app;
 GRANT SELECT ON audit_events         TO nessoo_admin_app;
 -- Migration ledger — lets the UI date the 0021 verification-timestamp reset,
 -- so grandfathered rows can be labelled instead of silently misread.
-GRANT SELECT ON _schema_applied      TO nessoo_admin_app;
+-- NOTE: schema_migrations is the real ledger (written by scripts/schema.mjs).
+-- There is also a stale `_schema_applied` table with 8 rows — not this one.
+GRANT SELECT ON schema_migrations    TO nessoo_admin_app;
 
 -- ---------- writes: inventory only, insert/update only ----------
 GRANT INSERT, UPDATE ON properties TO nessoo_admin_app;

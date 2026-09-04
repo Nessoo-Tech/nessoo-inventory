@@ -9,10 +9,15 @@ const NAV = [
 ]
 
 export default async function DashLayout({ children }: { children: React.ReactNode }) {
-  // THE gate. Every page under this group is behind it. Middleware only
-  // handles the host check — this is where identity is actually established.
+  // Defence in depth and the shell's own data — NOT the gate. Next renders
+  // layouts and pages in parallel, and a crafted RSC request skips layouts
+  // altogether, so each page calls requireAdminPage() itself. See lib/session.ts.
+  //
+  // Only 'no_session' is passed through, and only so the denied page can offer a
+  // sign-in link. Distinguishing "not an admin" from "not on the allowlist"
+  // would tell an attacker which of the two gates they already cleared.
   const auth = await resolveAdmin()
-  if (!auth.ok) redirect(`/denied?reason=${auth.reason}`)
+  if (!auth.ok) redirect(auth.reason === 'no_session' ? '/denied?reason=no_session' : '/denied')
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>

@@ -177,7 +177,7 @@ export async function getOverview(days = 30): Promise<Overview> {
              AS users_without_profile,
         (SELECT COUNT(*) FROM user_profiles WHERE signup_market_backfilled)::text
              AS backfilled_market,
-        (SELECT MAX(applied_at)::text FROM _schema_applied
+        (SELECT MAX(applied_at)::text FROM schema_migrations
            WHERE filename LIKE '0021%')
              AS verification_reset_at`),
   ])

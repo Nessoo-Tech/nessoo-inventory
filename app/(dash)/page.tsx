@@ -1,9 +1,14 @@
+import { requireAdminPage } from '@/lib/session'
 import { getOverview } from '@/lib/queries/overview'
 import { Bars, Breakdown, Card, Caveat, Stat, StatGrid, usd } from './_ui'
 
 export const dynamic = 'force-dynamic'
 
 export default async function OverviewPage() {
+  // MUST come before any query. The layout's check does not protect this page —
+  // Next renders layouts and pages in parallel. See requireAdminPage's comment.
+  await requireAdminPage()
+
   const o = await getOverview(30)
 
   const verifiedPct = o.verification.renterProfiles

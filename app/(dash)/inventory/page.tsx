@@ -1,3 +1,4 @@
+import { requireAdminPage } from '@/lib/session'
 import { listOrganizations, listUnits } from '@/lib/queries/inventory'
 import { Card } from '../_ui'
 import { UnitTable } from './_editor'
@@ -9,6 +10,10 @@ export default async function InventoryPage({
 }: {
   searchParams: { org?: string }
 }) {
+  // MUST come before any query — see requireAdminPage. A crafted RSC request
+  // skips the layout entirely, so this is the only gate that actually runs.
+  await requireAdminPage()
+
   const orgId = searchParams.org
   const [orgs, units] = await Promise.all([listOrganizations(), listUnits(orgId)])
   const selected = orgs.find((o) => o.id === orgId)

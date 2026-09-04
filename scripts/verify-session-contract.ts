@@ -54,7 +54,18 @@ async function checkSqlContract(url: string) {
       const src = def.rows[0].src
       // If any of these disappear, the gate has widened without this repo
       // knowing — precisely the drift this file exists to catch.
-      check("still filters on platform_role = 'super_admin'", /super_admin/.test(src))
+      //
+      // A bare /super_admin/ substring test is NOT enough: widening the
+      // predicate to IN ('super_admin','org_admin') still contains the string
+      // and would sail through. Assert the equality form specifically, and that
+      // no other role is named anywhere in the body.
+      check(
+        "still filters on platform_role = 'super_admin' (equality, not IN)",
+        /platform_role\s*=\s*'super_admin'/.test(src) && !/\bIN\s*\(/i.test(src),
+      )
+      const otherRoles = ['org_admin', 'leasing_manager', 'leasing_agent', 'tour_guide', 'renter']
+        .filter((r) => new RegExp(`'${r}'`).test(src))
+      check('no other platform_role is accepted', otherRoles.length === 0, otherRoles.join(', '))
       check('still rejects expired sessions', /expiresAt/.test(src) && /NOW\(\)/.test(src))
       check(
         'still runs SECURITY DEFINER with a pinned search_path',

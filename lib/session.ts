@@ -1,5 +1,6 @@
 import 'server-only'
 import { cookies, headers } from 'next/headers'
+import { redirect } from 'next/navigation'
 import { db } from './db'
 import { isAllowlistedEmail, isAllowedHost } from './allowlist'
 import { extractSessionToken } from './session-token'
@@ -77,6 +78,27 @@ export async function resolveAdmin(): Promise<AdminAuthResult> {
     ok: true,
     user: { id: row.user_id, email: row.email, name: row.name, role: row.platform_role },
   }
+}
+
+/**
+ * THE gate for a page. Call this as the FIRST statement of every page component,
+ * before fetching any data.
+ *
+ * A check in the layout is NOT sufficient and must never be relied on: Next.js
+ * renders layouts and pages in PARALLEL, so a redirect thrown in the layout does
+ * not stop the page from running its queries and flushing the rendered result.
+ * Verified empirically against a production build — an unauthenticated RSC
+ * request to /inventory returned HTTP 200 with the entire unit table in the body
+ * while the layout was "redirecting". The layout check remains as defence in
+ * depth and to render the shell, but this is the boundary.
+ *
+ * Because this runs before any query, an unauthorised request fetches nothing
+ * and therefore has nothing to leak.
+ */
+export async function requireAdminPage(): Promise<AdminUser> {
+  const result = await resolveAdmin()
+  if (result.ok) return result.user
+  redirect('/denied')
 }
 
 /** For API routes. Throws AdminAuthError; pair with adminAuthErrorResponse(). */

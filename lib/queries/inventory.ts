@@ -178,10 +178,48 @@ function requireText(value: unknown, field: string, max = 300): string {
   return v
 }
 
+/**
+ * Only a real number or a numeric string counts. This matters more than it
+ * looks: JSON.parse can hand us `[]`, `false` or `''`, and bare Number() turns
+ * every one of those into 0 — which would silently publish a live listing at
+ * $0/month rather than rejecting the request.
+ */
+function toNumber(value: unknown, field: string): number {
+  if (typeof value === 'number') {
+    if (!Number.isFinite(value)) throw new ValidationError(`${field} must be a number`)
+    return value
+  }
+  if (typeof value === 'string' && value.trim() !== '') {
+    const n = Number(value)
+    if (Number.isFinite(n)) return n
+  }
+  throw new ValidationError(`${field} must be a number`)
+}
+
+function isUnset(value: unknown): boolean {
+  return value === null || value === undefined || value === ''
+}
+
 function optionalInt(value: unknown, field: string, min: number, max: number): number | null {
-  if (value === null || value === undefined || value === '') return null
-  const n = Number(value)
-  if (!Number.isFinite(n) || !Number.isInteger(n)) throw new ValidationError(`${field} must be a whole number`)
+  if (isUnset(value)) return null
+  const n = toNumber(value, field)
+  if (!Number.isInteger(n)) throw new ValidationError(`${field} must be a whole number`)
+  if (n < min || n > max) throw new ValidationError(`${field} is out of range`)
+  return n
+}
+
+/** Dollars in, cents out. Rejects anything that isn't genuinely numeric. */
+function optionalMoneyCents(value: unknown, field: string): number | null {
+  if (isUnset(value)) return null
+  const dollars = toNumber(value, field)
+  if (dollars < 0) throw new ValidationError(`${field} cannot be negative`)
+  if (dollars > 100_000) throw new ValidationError(`${field} is out of range`)
+  return Math.round(dollars * 100)
+}
+
+function optionalDecimal(value: unknown, field: string, min: number, max: number): number | null {
+  if (isUnset(value)) return null
+  const n = toNumber(value, field)
   if (n < min || n > max) throw new ValidationError(`${field} is out of range`)
   return n
 }
@@ -192,7 +230,9 @@ export interface PropertyInput {
   address: string
   city: string
   state: string
-  zip?: string | null
+  // Required, not optional: properties.zip is NOT NULL with no default, so a
+  // missing zip is a 400 here rather than a 500 from Postgres.
+  zip: string
 }
 
 export async function createProperty(actor: Actor, input: PropertyInput): Promise<string> {
@@ -201,7 +241,7 @@ export async function createProperty(actor: Actor, input: PropertyInput): Promis
   const address = requireText(input.address, 'address')
   const city = requireText(input.city, 'city', 120)
   const state = requireText(input.state, 'state', 2)
-  const zip = input.zip ? requireText(input.zip, 'zip', 10) : null
+  const zip = requireText(input.zip, 'zip', 10)
 
   return inTransaction(async (client) => {
     const { rows: org } = await client.query(
@@ -235,12 +275,18 @@ export async function createUnit(actor: Actor, input: UnitInput): Promise<string
   const propertyId = requireText(input.propertyId, 'building', 100)
   const name = requireText(input.name, 'unit name', 60)
   const bedrooms = optionalInt(input.bedrooms, 'bedrooms', 0, 20)
-  const rentCents = input.rentDollars == null || input.rentDollars === ('' as unknown)
-    ? null
-    : optionalInt(Math.round(Number(input.rentDollars) * 100), 'rent', 0, 100_000_00)
+  const bathrooms = optionalDecimal(input.bathrooms, 'bathrooms', 0, 20)
+  const rentCents = optionalMoneyCents(input.rentDollars, 'rent')
   const status: UnitStatus = UNIT_STATUSES.includes(input.status as UnitStatus)
     ? (input.status as UnitStatus)
     : 'active'
+  // Neighborhood is matched by EXACT string elsewhere in the platform against a
+  // canonical gazetteer — a typo here does not fail loudly, it silently drops
+  // the unit out of neighborhood searches. Shape is validated here; the
+  // canonical list lives in homey-ux, so mis-spellings remain possible.
+  const neighborhood = isUnset(input.neighborhood)
+    ? null
+    : requireText(input.neighborhood, 'neighborhood', 80)
 
   return inTransaction(async (client) => {
     // The property must belong to the org being written to — this is the check
@@ -250,16 +296,20 @@ export async function createUnit(actor: Actor, input: UnitInput): Promise<string
       [propertyId, orgId])
     if (!prop.length) throw new ValidationError('building not found for this organization')
 
-    const other = input.neighborhood ? JSON.stringify({ neighborhood: input.neighborhood }) : null
+    const other = neighborhood ? JSON.stringify({ neighborhood }) : null
 
     const { rows } = await client.query(
       `INSERT INTO units (org_id, property_id, name, bedrooms, bathrooms, rent_cents, status, other_criteria)
        VALUES ($1, $2, $3, $4, $5, $6, $7::unit_status, COALESCE($8::jsonb, '{}'::jsonb))
        RETURNING id`,
-      [orgId, propertyId, name, bedrooms, input.bathrooms ?? null, rentCents, status, other])
+      [orgId, propertyId, name, bedrooms, bathrooms, rentCents, status, other])
 
     const id = rows[0].id
-    await audit(client, actor, 'create', 'unit', id, orgId, { propertyId, name, bedrooms, rentCents, status })
+    // Record the values actually written, not the raw request — otherwise the
+    // immutable log describes something different from the row it refers to.
+    await audit(client, actor, 'create', 'unit', id, orgId, {
+      propertyId, name, bedrooms, bathrooms, rentCents, status, neighborhood,
+    })
     return id
   })
 }
@@ -275,20 +325,22 @@ export async function updateUnit(
   const params: unknown[] = []
   const applied: Record<string, unknown> = {}
 
+  // Each branch records the value actually written, so the audit row always
+  // matches the row it describes.
   if (patch.name !== undefined) {
-    params.push(requireText(patch.name, 'unit name', 60))
+    const v = requireText(patch.name, 'unit name', 60)
+    params.push(v)
     sets.push(`name = $${params.length}`)
-    applied.name = patch.name
+    applied.name = v
   }
   if (patch.bedrooms !== undefined) {
-    params.push(optionalInt(patch.bedrooms, 'bedrooms', 0, 20))
+    const v = optionalInt(patch.bedrooms, 'bedrooms', 0, 20)
+    params.push(v)
     sets.push(`bedrooms = $${params.length}`)
-    applied.bedrooms = patch.bedrooms
+    applied.bedrooms = v
   }
   if (patch.rentDollars !== undefined) {
-    const cents = patch.rentDollars == null
-      ? null
-      : optionalInt(Math.round(Number(patch.rentDollars) * 100), 'rent', 0, 100_000_00)
+    const cents = optionalMoneyCents(patch.rentDollars, 'rent')
     params.push(cents)
     sets.push(`rent_cents = $${params.length}`)
     applied.rentCents = cents

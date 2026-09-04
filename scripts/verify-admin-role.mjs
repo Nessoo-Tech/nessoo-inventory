@@ -61,12 +61,27 @@ await denied('user_profiles UPDATE', "UPDATE user_profiles SET platform_role = p
 await denied('audit_events UPDATE', "UPDATE audit_events SET action = action WHERE id = '__nonexistent__'")
 
 // --- the app must still be able to do its job ---
+//
+// These assertions were originally written from sql/admin-role.sql — i.e. they
+// only proved the grants matched the grant file, which is circular. That is how
+// a missing grant on `session` (needed by the daily-actives query) got past this
+// script: nothing here exercised it. They are now written from what
+// lib/queries/*.ts actually SELECTs.
+//
+// This list still only covers representative columns. `npm run smoke` is the
+// real coverage — it executes every query the app runs. Run BOTH before deploy.
 await allowed('validate_admin_session EXECUTE', 'SELECT * FROM validate_admin_session($1)', ['__not-a-real-token__'])
 await allowed('user read', 'SELECT id, email, "createdAt" FROM "user" LIMIT 1')
+await allowed('session timestamps (daily actives)', 'SELECT "userId", "createdAt" FROM session LIMIT 1')
+await allowed('user_profiles read', 'SELECT user_id, platform_role, signup_market FROM user_profiles LIMIT 1')
 await allowed('renter_profiles allowed cols', 'SELECT user_id, income_verified_at FROM renter_profiles LIMIT 1')
+await allowed('organizations read', 'SELECT id, name, is_model_b FROM organizations LIMIT 1')
 await allowed('properties read', 'SELECT id, name FROM properties LIMIT 1')
 await allowed('units read', 'SELECT id, rent_cents FROM units LIMIT 1')
 await allowed('payments read', 'SELECT id, amount_cents FROM renter_payments LIMIT 1')
+await allowed('connections read', 'SELECT COUNT(*) FROM connection_requests')
+await allowed('referral links read', 'SELECT id, code FROM referral_links LIMIT 1')
+await allowed('migration ledger read', `SELECT applied_at FROM schema_migrations WHERE filename LIKE '0021%'`)
 
 await pool.end()
 

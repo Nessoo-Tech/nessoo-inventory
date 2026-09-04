@@ -40,6 +40,10 @@ const dbName = (await db.query('SELECT current_database() AS db')).rows[0].db
 // future ADD COLUMN stays unreachable until someone deliberately adds it.
 const COLUMN_GRANTS = {
   '"user"': ['id', 'name', 'email', '"emailVerified"', '"createdAt"', '"updatedAt"', 'role'],
+  // Daily-actives needs these timestamps. `token` is deliberately absent — it is
+  // live bearer material, and a whole-table grant here would let the admin
+  // console impersonate any user.
+  session: ['"userId"', '"createdAt"', '"updatedAt"'],
   user_profiles: ['user_id', 'platform_role', 'onboarding_completed', 'onboarding_step',
     'signup_host', 'signup_market', 'signup_market_backfilled', 'open_market_preview',
     'created_at', 'updated_at'],
@@ -58,7 +62,7 @@ const COLUMN_GRANTS = {
 // No sensitive columns on these, so a whole-table grant is honest and simpler.
 const TABLE_READS = ['members', 'properties', 'units', 'connection_requests', 'connections',
   'referral_links', 'renter_payments', 'client_billing_events', 'subscriptions',
-  'audit_events', '_schema_applied']
+  'audit_events', 'schema_migrations']
 
 const statements = []
 
