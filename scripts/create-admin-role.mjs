@@ -11,10 +11,13 @@
  *   node scripts/create-admin-role.mjs --confirm
  *
  * Then put this into the Vercel project as DATABASE_URL:
- *   postgres://nessoo_admin_app:<password>@<host>:5432/<db>?sslmode=require
+ *   postgres://nessoo_admin_app:<password>@<host>:5432/<db>
+ *   (no ?sslmode= — lib/db.ts supplies the TLS config, and sslmode in the
+ *    URL makes pg-connection-string discard it, breaking verification)
  *
  * Verify afterwards with:  npm run verify:role
  */
+import { readFileSync } from 'node:fs'
 import pg from 'pg'
 
 const confirm = process.argv.includes('--confirm')
@@ -31,7 +34,7 @@ if (!password || password.length < 24) {
   process.exit(1)
 }
 
-const db = new pg.Client({ connectionString: url, ssl: { rejectUnauthorized: false } })
+const db = new pg.Client({ connectionString: url, ssl: { ca: readFileSync(new URL('../certs/rds-global-bundle.pem', import.meta.url), 'utf8'), rejectUnauthorized: true } })
 await db.connect()
 
 const dbName = (await db.query('SELECT current_database() AS db')).rows[0].db
@@ -138,7 +141,8 @@ try {
 const host = new URL(url.replace(/^postgres(ql)?:\/\//, 'https://')).host
 console.log('\n  ✓ role created and grants applied')
 console.log('\n  Set this as DATABASE_URL on the Vercel project:')
-console.log(`    postgres://nessoo_admin_app:<password>@${host}/${dbName}?sslmode=require`)
+console.log(`    postgres://nessoo_admin_app:<password>@${host}/${dbName}`)
+console.log('    (deliberately no ?sslmode= — see the note at the top of this file)')
 console.log('\n  Then verify the restrictions actually hold:')
 console.log('    DATABASE_URL=<that url> npm run verify:role\n')
 

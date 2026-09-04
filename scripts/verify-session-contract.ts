@@ -10,6 +10,7 @@
  *
  * Run: npm run verify:session
  */
+import { readFileSync } from 'node:fs'
 import pg from 'pg'
 import { extractSessionToken } from '../lib/session-token'
 
@@ -33,7 +34,7 @@ function checkCookieParsing() {
 }
 
 async function checkSqlContract(url: string) {
-  const c = new pg.Client({ connectionString: url, ssl: { rejectUnauthorized: false } })
+  const c = new pg.Client({ connectionString: url, ssl: { ca: readFileSync(new URL('../certs/rds-global-bundle.pem', import.meta.url), 'utf8'), rejectUnauthorized: true } })
   await c.connect()
 
   try {

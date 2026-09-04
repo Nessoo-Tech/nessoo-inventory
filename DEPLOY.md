@@ -66,7 +66,7 @@ node scripts/create-admin-role.mjs            # dry run first
 Then prove the restrictions actually hold:
 
 ```bash
-DATABASE_URL='postgres://nessoo_admin_app:<password>@<host>/homey?sslmode=require' \
+DATABASE_URL='postgres://nessoo_admin_app:<password>@<host>/homey' \
 npm run verify:role
 ```
 

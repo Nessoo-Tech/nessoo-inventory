@@ -8,6 +8,7 @@
 //
 // Run: npm run verify:role
 
+import { readFileSync } from 'node:fs'
 import pg from 'pg'
 
 const url = process.env.DATABASE_URL
@@ -16,7 +17,7 @@ if (!url) {
   process.exit(1)
 }
 
-const pool = new pg.Pool({ connectionString: url, ssl: { rejectUnauthorized: false }, max: 2 })
+const pool = new pg.Pool({ connectionString: url, ssl: { ca: readFileSync(new URL('../certs/rds-global-bundle.pem', import.meta.url), 'utf8'), rejectUnauthorized: true }, max: 2 })
 
 const failures = []
 
