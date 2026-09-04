@@ -122,11 +122,41 @@ advanced: {
 **This affects every user, not only admins.** Every signed-in user's session
 cookie starts being sent to `admin.nessoo.com` and to any future `*.nessoo.com`
 subdomain. `httpOnly` prevents JavaScript from reading it but does nothing about
-a compromised subdomain server. Expect it may also invalidate existing sessions
-(the cookie's scope changes), signing people out once.
+a compromised subdomain server.
+
+### The stale-cookie trap
+
+Browsers keep host-only and domain cookies of the *same name* as separate
+entries, and send both. After the flip, an existing visitor holds:
+
+```
+better-auth.session_token   host-only, app.nessoo.com   ← the old one, still there
+better-auth.session_token   domain=.nessoo.com          ← the new one
+```
+
+Which one wins is ordering-dependent, and Better Auth's sign-out only clears the
+cookie it now writes — the domain one. The host-only cookie can outlive a
+sign-out and shadow the new session, which looks like "signing out did nothing"
+or "I keep getting logged in as my old session".
+
+Mitigation: on the deploy that flips this, also clear the old host-only cookie
+once. In `middleware.ts`, when a request carries a host-only session cookie,
+expire it explicitly:
+
+```ts
+res.cookies.set({
+  name: '__Secure-better-auth.session_token',
+  value: '', maxAge: 0, path: '/',      // NO domain → targets the host-only one
+  secure: true, httpOnly: true, sameSite: 'lax',
+})
+```
+
+Ship that alongside the flip, keep it for a couple of weeks, then remove it.
+Without it, expect confusing sign-out reports rather than a clean cutover.
 
 Do this only after steps 1–5 are verified, deploy it during a quiet window, and
-confirm sign-in still works on nessoo.com and app.nessoo.com immediately after.
+confirm sign-in **and sign-out** still work on nessoo.com and app.nessoo.com
+immediately after.
 
 ## Verifying end to end
 

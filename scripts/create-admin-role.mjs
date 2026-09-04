@@ -38,6 +38,8 @@ const db = new pg.Client({ connectionString: url, ssl: { ca: readFileSync(new UR
 await db.connect()
 
 const dbName = (await db.query('SELECT current_database() AS db')).rows[0].db
+const roleExists = (await db.query(
+  `SELECT 1 FROM pg_roles WHERE rolname = 'nessoo_admin_app'`)).rows.length > 0
 
 // Column allowlists. Anything not named here is unreachable by the role, and a
 // future ADD COLUMN stays unreachable until someone deliberately adds it.
@@ -58,29 +60,70 @@ const COLUMN_GRANTS = {
     'move_in_window', 'shopping_scope', 'joined_exchange', 'employer', 'job_title',
     'stated_income_cents', 'verified_income_cents', 'readiness_score', 'referred_by_link_id',
     'created_at', 'updated_at'],
-  organizations: ['id', 'name', 'slug', 'type', 'logo_url', 'website', 'billing_email',
-    'billing_name', 'is_model_b', 'default_criteria', 'created_at', 'updated_at', 'deleted_at'],
+  organizations: ['id', 'name', 'slug', 'type', 'logo_url', 'website',
+    'is_model_b', 'created_at', 'updated_at', 'deleted_at'],
+
+  // Every column the inventory screens read. landlord_name / landlord_email /
+  // landlord_phone are deliberately absent: contact PII the console never
+  // displays, and the previous whole-table grant also carried UPDATE rights to
+  // rewrite them across every organization.
+  units: ['id', 'org_id', 'property_id', 'name', 'bedrooms', 'bathrooms', 'rent_cents',
+    'available_from', 'status', 'other_criteria', 'created_at', 'updated_at', 'deleted_at'],
+
+  properties: ['id', 'org_id', 'name', 'address', 'city', 'state', 'zip', 'status',
+    'created_at', 'updated_at', 'deleted_at'],
+
+  // Counts and a daily series only. `message` is free text between a renter and
+  // a broker and is none of this console's business.
+  connection_requests: ['id', 'status', 'created_at', 'responded_at'],
+  connections: ['id', 'accepted_at', 'created_at'],
+
+  // Revenue totals only. Stripe identifiers are payment-system handles, excluded
+  // for the same reason stripe_customer_id is excluded from user_profiles and
+  // organizations above.
+  renter_payments: ['id', 'payment_type', 'amount_cents', 'status', 'paid_at', 'refunded_at'],
+  client_billing_events: ['id', 'org_id', 'event_type', 'amount_cents', 'status', 'created_at'],
+  subscriptions: ['id', 'org_id', 'plan', 'status', 'period_start', 'period_end'],
+
+  referral_links: ['id', 'code', 'label', 'use_count', 'expires_at', 'revoked_at', 'created_at'],
+
+  // Only to date the 0021 verification-timestamp reset.
+  schema_migrations: ['filename', 'applied_at'],
 }
 
-// No sensitive columns on these, so a whole-table grant is honest and simpler.
-const TABLE_READS = ['members', 'properties', 'units', 'connection_requests', 'connections',
-  'referral_links', 'renter_payments', 'client_billing_events', 'subscriptions',
-  'audit_events', 'schema_migrations']
+// Nothing gets a whole-table read any more. `members` was granted and never
+// queried. `audit_events` keeps INSERT (below) but loses SELECT — this console
+// writes the audit trail; it does not need to read back every actor's IP address
+// and metadata blob platform-wide.
+const TABLE_READS = []
 
 const statements = []
 
-statements.push({
-  label: 'create role',
-  sql: `DO $do$ BEGIN
-          IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'nessoo_admin_app') THEN
-            ALTER ROLE nessoo_admin_app WITH LOGIN PASSWORD ${literal(password)}
-              NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION CONNECTION LIMIT 10;
-          ELSE
-            CREATE ROLE nessoo_admin_app WITH LOGIN PASSWORD ${literal(password)}
-              NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION CONNECTION LIMIT 10;
-          END IF;
-        END $do$;`,
-})
+// Only touch the role itself when it does not exist yet.
+//
+// Re-running this script is normally about re-applying GRANTs after a schema
+// change, not about rotating the password. That distinction matters on RDS:
+// CREATE ROLE ... NOSUPERUSER is fine for a CREATEROLE user, but
+// ALTER ROLE ... NOSUPERUSER requires actual superuser and fails with
+// "permission denied to alter role". Rotating is opt-in via --rotate-password.
+const rotate = process.argv.includes('--rotate-password')
+
+if (roleExists && !rotate) {
+  console.log('  role already exists — leaving it alone, re-applying grants only')
+  console.log('  (pass --rotate-password to also set a new password)\n')
+} else if (roleExists) {
+  statements.push({
+    label: 'rotate password',
+    // Password only. Any attribute flag here needs superuser on RDS.
+    sql: `ALTER ROLE nessoo_admin_app WITH LOGIN PASSWORD ${literal(password)};`,
+  })
+} else {
+  statements.push({
+    label: 'create role',
+    sql: `CREATE ROLE nessoo_admin_app WITH LOGIN PASSWORD ${literal(password)}
+            NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION CONNECTION LIMIT 10;`,
+  })
+}
 
 statements.push({ label: 'connect + schema', sql:
   `GRANT CONNECT ON DATABASE ${ident(dbName)} TO nessoo_admin_app;
@@ -101,8 +144,10 @@ for (const [table, cols] of Object.entries(COLUMN_GRANTS)) {
   })
 }
 
-statements.push({ label: `read ${TABLE_READS.length} whole tables`, sql:
-  TABLE_READS.map((t) => `GRANT SELECT ON ${t} TO nessoo_admin_app;`).join('\n') })
+if (TABLE_READS.length) {
+  statements.push({ label: `read ${TABLE_READS.length} whole tables`, sql:
+    TABLE_READS.map((t) => `GRANT SELECT ON ${t} TO nessoo_admin_app;`).join('\n') })
+}
 
 statements.push({ label: 'inventory writes (no DELETE)', sql:
   `GRANT INSERT, UPDATE ON properties TO nessoo_admin_app;

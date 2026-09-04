@@ -54,6 +54,22 @@ await denied('renter_profiles.address', 'SELECT address FROM renter_profiles LIM
 await denied('renter_profiles (star)', 'SELECT * FROM renter_profiles LIMIT 1')
 await denied('user_profiles.onboarding_answers', 'SELECT onboarding_answers FROM user_profiles LIMIT 1')
 
+// --- data the console has no business reading ---
+// Everything below was once reachable via a whole-table grant. Each line is a
+// column the app never displays; if any starts succeeding, a grant has widened.
+await denied('units.landlord_name', 'SELECT landlord_name FROM units LIMIT 1')
+await denied('units.landlord_email', 'SELECT landlord_email FROM units LIMIT 1')
+await denied('units.landlord_phone', 'SELECT landlord_phone FROM units LIMIT 1')
+await denied('units (star)', 'SELECT * FROM units LIMIT 1')
+await denied('organizations.stripe_customer_id', 'SELECT stripe_customer_id FROM organizations LIMIT 1')
+await denied('renter_payments.stripe_customer_id', 'SELECT stripe_customer_id FROM renter_payments LIMIT 1')
+await denied('subscriptions.stripe_subscription_id', 'SELECT stripe_subscription_id FROM subscriptions LIMIT 1')
+await denied('connection_requests.message', 'SELECT message FROM connection_requests LIMIT 1')
+await denied('members', 'SELECT * FROM members LIMIT 1')
+// This console WRITES the audit trail; it must not be able to read back every
+// actor's IP address and metadata blob platform-wide.
+await denied('audit_events SELECT', 'SELECT * FROM audit_events LIMIT 1')
+
 // --- no destructive writes anywhere ---
 await denied('properties DELETE', "DELETE FROM properties WHERE id = '__nonexistent__'")
 await denied('units DELETE', "DELETE FROM units WHERE id = '__nonexistent__'")

@@ -1,110 +1,61 @@
 -- ============================================================
--- nessoo_admin_app — least-privilege Postgres role for admin.nessoo.com
+-- nessoo_admin_app — least-privilege Postgres role
 --
--- Run this by hand against RDS with a privileged credential (homey_admin).
--- It is NOT part of homey-ux's numbered migration ledger, because it carries a
--- password and because roles are cluster-level, not schema-level.
+-- THIS FILE IS NOT THE SOURCE OF TRUTH. The grants are defined once, in
+-- scripts/create-admin-role.mjs, and applied from there:
 --
--- Design rules, in order of importance:
---   1. No path to credentials. No grant on `session`, `account`, `verification`,
---      `application_tokens` or `org_invite_links` — each of those holds bearer
---      material. Session validation goes through validate_admin_session()
---      (migration 0027), which is SECURITY DEFINER, so this role gets EXECUTE
---      and never SELECT.
---   2. No path to regulated PII. renter_profiles is granted column-by-column,
---      excluding ssn_encrypted, dob_encrypted, credit_score, phone, address and
---      commute_destination.
---   3. Column-level grants wherever a table has any sensitive column, so that a
---      future ALTER TABLE ... ADD COLUMN is NOT automatically visible to this
---      role. Whole-table grants are used only where no column is sensitive.
---   4. No DELETE anywhere. properties and units both use soft-deletes
---      (deleted_at) throughout homey-ux; hard DELETE would silently diverge
---      from that convention and cascade.
+--   ADMIN_DB_URL=<privileged>  ADMIN_APP_PASSWORD=<secret> \
+--   node scripts/create-admin-role.mjs --confirm
 --
--- Verify with: npm run verify:role  (scripts/verify-admin-role.mjs)
--- ============================================================
-
--- ---------- role ----------
--- Set the password from a secrets manager. Do not commit a real one.
-CREATE ROLE nessoo_admin_app WITH LOGIN PASSWORD :'admin_app_password'
-  NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS
-  CONNECTION LIMIT 10;
-
--- CONNECT was revoked FROM PUBLIC on this database, so it must be granted back.
-GRANT CONNECT ON DATABASE :"db_name" TO nessoo_admin_app;
-GRANT USAGE ON SCHEMA public TO nessoo_admin_app;
-
--- ---------- auth ----------
-GRANT EXECUTE ON FUNCTION validate_admin_session(TEXT) TO nessoo_admin_app;
-
--- ---------- reads: column-restricted (table has sensitive columns) ----------
-
--- excludes: image
-GRANT SELECT (id, name, email, "emailVerified", "createdAt", "updatedAt", role)
-  ON "user" TO nessoo_admin_app;
-
--- Sign-in activity (daily actives) needs the session timestamps. Granting the
--- WHOLE table would hand over `token`, which is live bearer material — an admin
--- console could then impersonate any user. Only the three non-sensitive columns
--- are granted; token, ipAddress and userAgent stay unreachable.
-GRANT SELECT ("userId", "createdAt", "updatedAt") ON session TO nessoo_admin_app;
-
--- excludes: phone, stripe_customer_id, onboarding_answers (free-text PII)
-GRANT SELECT (user_id, platform_role, onboarding_completed, onboarding_step,
-              signup_host, signup_market, signup_market_backfilled,
-              open_market_preview, created_at, updated_at)
-  ON user_profiles TO nessoo_admin_app;
-
--- excludes: ssn_encrypted, dob_encrypted, credit_score, phone, address,
---           commute_destination, must_haves, disclosure, ui_prefs
-GRANT SELECT (user_id, full_name, city, state, zip, visibility, household_id,
-              identity_verified, income_verified, background_cleared, credit_checked,
-              identity_verified_at, income_verified_at, background_verified_at,
-              credit_checked_at, income_bootstrap_completed, income_bootstrap_completed_at,
-              preferred_city, preferred_bedrooms, preferred_max_rent, preferred_min_rent,
-              preferred_neighborhoods, move_in_window, shopping_scope, joined_exchange,
-              employer, job_title, stated_income_cents, verified_income_cents,
-              readiness_score, referred_by_link_id, created_at, updated_at)
-  ON renter_profiles TO nessoo_admin_app;
-
--- excludes: stripe_customer_id
-GRANT SELECT (id, name, slug, type, logo_url, website, billing_email, billing_name,
-              is_model_b, default_criteria, created_at, updated_at, deleted_at)
-  ON organizations TO nessoo_admin_app;
-
--- ---------- reads: whole-table (no sensitive columns) ----------
-GRANT SELECT ON members              TO nessoo_admin_app;
-GRANT SELECT ON properties           TO nessoo_admin_app;
-GRANT SELECT ON units                TO nessoo_admin_app;
-GRANT SELECT ON connection_requests  TO nessoo_admin_app;
-GRANT SELECT ON connections          TO nessoo_admin_app;
-GRANT SELECT ON referral_links       TO nessoo_admin_app;
-GRANT SELECT ON renter_payments      TO nessoo_admin_app;
-GRANT SELECT ON client_billing_events TO nessoo_admin_app;
-GRANT SELECT ON subscriptions        TO nessoo_admin_app;
-GRANT SELECT ON audit_events         TO nessoo_admin_app;
--- Migration ledger — lets the UI date the 0021 verification-timestamp reset,
--- so grandfathered rows can be labelled instead of silently misread.
--- NOTE: schema_migrations is the real ledger (written by scripts/schema.mjs).
--- There is also a stale `_schema_applied` table with 8 rows — not this one.
-GRANT SELECT ON schema_migrations    TO nessoo_admin_app;
-
--- ---------- writes: inventory only, insert/update only ----------
-GRANT INSERT, UPDATE ON properties TO nessoo_admin_app;
-GRANT INSERT, UPDATE ON units      TO nessoo_admin_app;
-
--- The admin app must be able to record what it did. Audit rows are
--- append-only by design: INSERT but never UPDATE or DELETE.
-GRANT INSERT ON audit_events TO nessoo_admin_app;
-
--- ============================================================
--- MAINTENANCE NOTE
+-- This file used to carry a second, hand-maintained copy of every GRANT. Two
+-- copies of a grant list drift, and a drifted grant list is how a column ends up
+-- exposed without anyone noticing — the same failure mode as the missing
+-- `session` grant that took down the dashboard on first load. So the list lives
+-- in one place and this file explains the reasoning behind it.
 --
--- ALTER DEFAULT PRIVILEGES auto-grants future TABLES, never future COLUMNS on
--- an already-granted table. `members`, `properties`, `units`,
--- `connection_requests`, `connections`, `referral_links`, `renter_payments`,
--- `client_billing_events`, `subscriptions` and `audit_events` above are
--- whole-table grants — a migration that adds a sensitive column to any of them
--- exposes it to this role silently. Re-review this file whenever one of those
--- tables gains a column.
+-- ── Design rules ────────────────────────────────────────────
+--
+-- 1. No path to credentials. No grant of any kind on `session` beyond three
+--    timestamp columns, and none at all on `account`, `verification`,
+--    `application_tokens` or `org_invite_links` — each holds bearer material.
+--    Session validation goes through validate_admin_session() (homey-ux
+--    migration 0027), which is SECURITY DEFINER, so the role gets EXECUTE and
+--    never SELECT on the underlying tables.
+--
+-- 2. No path to regulated PII. renter_profiles excludes ssn_encrypted,
+--    dob_encrypted, credit_score, phone, address and commute_destination.
+--
+-- 3. Column allowlists everywhere, no whole-table reads. This is what makes a
+--    future `ALTER TABLE ... ADD COLUMN` invisible to this role by default
+--    rather than automatically readable. It also keeps landlord contact details
+--    (units.landlord_name/email/phone) and Stripe identifiers out of a console
+--    that never displays them.
+--
+-- 4. No DELETE anywhere, and no UPDATE outside properties/units. Both use
+--    soft-deletes (deleted_at) throughout homey-ux; a hard DELETE would diverge
+--    from that convention and cascade.
+--
+-- 5. audit_events is INSERT-only. The console writes the audit trail; it has no
+--    business reading back every actor's IP address and metadata platform-wide.
+--
+-- ── Verifying ───────────────────────────────────────────────
+--
+--   npm run verify:role   asserts each forbidden read fails with 42501 and each
+--                         needed one succeeds — run it AS the role
+--   npm run smoke         runs every query the app actually makes
+--
+-- Run both before deploying. verify:role alone is not enough: its "allowed" list
+-- is hand-written, and an app query it happens not to cover can still fail in
+-- production.
+--
+-- ── Maintenance ─────────────────────────────────────────────
+--
+-- When a query in lib/queries/*.ts starts reading a new column, add that column
+-- to COLUMN_GRANTS in scripts/create-admin-role.mjs and re-run it. The script is
+-- idempotent and revokes everything first, so re-running can genuinely tighten a
+-- grant, not only widen it.
+--
+-- Re-running does NOT touch the role or its password by default — on RDS,
+-- ALTER ROLE ... NOSUPERUSER requires actual superuser and fails. Pass
+-- --rotate-password to change the password.
 -- ============================================================
