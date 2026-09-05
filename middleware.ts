@@ -31,6 +31,7 @@ export function middleware(req: NextRequest) {
     `script-src ${scriptSrc}`,
     `style-src 'self' 'unsafe-inline'`,
     `img-src 'self' data:`,
+    // Fonts are self-hosted via next/font, so nothing external is needed here.
     `font-src 'self'`,
     `connect-src 'self'`,
     `frame-ancestors 'none'`,

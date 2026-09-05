@@ -1,17 +1,20 @@
 /**
- * Runs every analytics and inventory READ the app performs, against a real
- * database, and prints what comes back.
+ * Runs every query the console makes, against a real database, and prints what
+ * comes back.
  *
  * Two things this catches that a typecheck cannot: SQL that is syntactically
  * wrong or names a column that does not exist, and a query the
- * `nessoo_admin_app` role is not actually granted — run it with that credential
- * and a permission error surfaces here rather than on a live admin's screen.
+ * `nessoo_admin_app` role is not actually granted. Run it with THAT credential
+ * — running it as a privileged role is how a missing grant on `session` reached
+ * production once already.
  *
- *   DATABASE_URL=... npm run smoke
+ *   DATABASE_URL=<nessoo_admin_app url> npm run smoke
  *
  * Read-only. Writes nothing.
  */
-import { getOverview } from '../lib/queries/overview'
+import { getAdminData } from '../lib/queries/admin'
+import { listUsers, flagUsers } from '../lib/queries/users'
+import { getInventoryData } from '../lib/queries/inventory-data'
 import { listOrganizations, listUnits } from '../lib/queries/inventory'
 import { db } from '../lib/db'
 
@@ -23,10 +26,11 @@ if (!process.env.DATABASE_URL) {
 let failed = false
 
 async function run<T>(label: string, fn: () => Promise<T>): Promise<T | null> {
-  process.stdout.write(`  ${label} … `)
+  process.stdout.write(`  ${label.padEnd(34)} `)
+  const t = Date.now()
   try {
     const out = await fn()
-    console.log('ok')
+    console.log(`ok  ${Date.now() - t}ms`)
     return out
   } catch (e) {
     failed = true
@@ -39,33 +43,33 @@ async function run<T>(label: string, fn: () => Promise<T>): Promise<T | null> {
 
 async function main() {
   console.log('')
-  const o = await run('getOverview(30)', () => getOverview(30))
-  const orgs = await run('listOrganizations()', () => listOrganizations())
-  await run('listUnits() unfiltered', () => listUnits())
-  if (orgs?.length) await run('listUnits(orgId) filtered', () => listUnits(orgs[0].id))
+  const admin = await run('getAdminData(14)', () => getAdminData(14))
+  const users = await run('listUsers()', () => listUsers())
+  const inv = await run('getInventoryData()', () => getInventoryData())
+  await run('listOrganizations()', () => listOrganizations())
+  await run('listUnits()', () => listUnits())
 
-  if (o) {
-    console.log('\n  --- what the dashboard would show ---')
-    console.log(`  signups total ......... ${o.signups.total}`)
-    console.log(`  signups last 7d ....... ${o.signups.last7}`)
-    console.log(`  signup series points .. ${o.signups.series.length}`)
-    console.log(`  roles ................. ${o.signups.byRole.map((r) => `${r.role}:${r.count}`).join(' ')}`)
-    console.log(`  markets ............... ${o.signups.byMarket.map((r) => `${r.market}:${r.count}`).join(' ')}`)
-    console.log(`  active 7d / 30d ....... ${o.activity.activeLast7} / ${o.activity.activeLast30}`)
-    console.log(`  renter profiles ....... ${o.verification.renterProfiles}`)
-    console.log(`  ran Plaid income ...... ${o.verification.incomeVerified}`)
-    console.log(`  ran Plaid identity .... ${o.verification.identityVerified}`)
-    console.log(`  fully verified ........ ${o.verification.bothVerified}`)
-    console.log(`  connections req/acc ... ${o.connections.requested} / ${o.connections.accepted}`)
-    console.log(`  referral links ........ ${o.referrals.length}`)
-    console.log(`  renter fees (cents) ... ${o.money.renterFeesCents} over ${o.money.renterFeeCount} payments`)
-    console.log(`  org billing (cents) ... ${o.money.orgBillingCents}`)
-    console.log(`  orgs/buildings/units .. ${o.inventory.orgs} / ${o.inventory.properties} / ${o.inventory.units}`)
-    console.log(`  unit statuses ......... ${o.inventory.byStatus.map((r) => `${r.status}:${r.count}`).join(' ')}`)
-    console.log('\n  --- caveats the UI surfaces ---')
-    console.log(`  users with no profile . ${o.caveats.usersWithoutProfile}`)
-    console.log(`  backfilled market ..... ${o.caveats.backfilledMarket}`)
-    console.log(`  verification reset at . ${o.caveats.verificationResetAt ?? '(not found)'}`)
+  if (admin) {
+    console.log('\n  --- admin console ---')
+    console.log(`  activity events ....... ${admin.activity.events.length}`)
+    console.log(`  signups ............... ${admin.analytics.totalSignups}  growth ${admin.analytics.monthlyGrowthPct}%  retention ${admin.analytics.retention7dPct}%`)
+    console.log(`  funnel ................ ${admin.analytics.funnel.signedUp} → ${admin.analytics.funnel.completedProfile} → ${admin.analytics.funnel.firstConnection}`)
+    console.log(`  searches .............. ${admin.searches.total} (${admin.searches.noResultsRatePct}% zero-result)`)
+    console.log(`  listing perf .......... top ${admin.listings.top.length}, dead ${admin.listings.dead.length}, no activity ${admin.listings.noActivityCount}`)
+    console.log(`  system ................ ${admin.system.dbSize}, ${admin.system.migrationsApplied} migrations, ${admin.system.apiCalls24h} AI calls/24h`)
+    console.log(`  revenue ............... ${admin.revenue.renterFeesCents}c over ${admin.revenue.renterFeeCount} payments`)
+  }
+  if (users) {
+    const f = flagUsers(users)
+    console.log('\n  --- users ---')
+    console.log(`  total ................. ${users.length}  with phone ${users.filter((u) => u.phone).length}`)
+    console.log(`  flagged ............... neverReturned ${f.neverReturned.length}, quiet ${f.wentQuiet.length}, stalled ${f.startedNotFinishedVerification.length}`)
+  }
+  if (inv) {
+    console.log('\n  --- inventory console ---')
+    console.log(`  clients ............... ${inv.clients.length}`)
+    console.log(`  listings .............. ${inv.listings.length}`)
+    console.log(`  prospects ............. ${inv.prospects.length}`)
   }
 
   await db.end()

@@ -49,10 +49,10 @@ const COLUMN_GRANTS = {
   // live bearer material, and a whole-table grant here would let the admin
   // console impersonate any user.
   session: ['"userId"', '"createdAt"', '"updatedAt"'],
-  user_profiles: ['user_id', 'platform_role', 'onboarding_completed', 'onboarding_step',
+  user_profiles: ['user_id', 'platform_role', 'phone', 'onboarding_completed', 'onboarding_step',
     'signup_host', 'signup_market', 'signup_market_backfilled', 'open_market_preview',
     'created_at', 'updated_at'],
-  renter_profiles: ['user_id', 'full_name', 'city', 'state', 'zip', 'visibility', 'household_id',
+  renter_profiles: ['user_id', 'full_name', 'phone', 'city', 'state', 'zip', 'visibility', 'household_id',
     'identity_verified', 'income_verified', 'background_cleared', 'credit_checked',
     'identity_verified_at', 'income_verified_at', 'background_verified_at', 'credit_checked_at',
     'income_bootstrap_completed', 'income_bootstrap_completed_at', 'preferred_city',
@@ -75,8 +75,8 @@ const COLUMN_GRANTS = {
 
   // Counts and a daily series only. `message` is free text between a renter and
   // a broker and is none of this console's business.
-  connection_requests: ['id', 'status', 'created_at', 'responded_at'],
-  connections: ['id', 'accepted_at', 'created_at'],
+  connection_requests: ['id', 'renter_id', 'org_id', 'unit_id', 'status', 'created_at', 'responded_at'],
+  connections: ['id', 'renter_id', 'org_id', 'unit_id', 'accepted_at', 'access_expires_at', 'access_revoked_at', 'created_at'],
 
   // Revenue totals only. Stripe identifiers are payment-system handles, excluded
   // for the same reason stripe_customer_id is excluded from user_profiles and
@@ -89,6 +89,16 @@ const COLUMN_GRANTS = {
 
   // Only to date the 0021 verification-timestamp reset.
   schema_migrations: ['filename', 'applied_at'],
+
+  // Migrated CRM leads and the instrumentation tables. These were created but
+  // never granted, so every screen built on them silently returned nothing.
+  prospects: ['id', 'org_id', 'name', 'email', 'phone', 'budget_min_cents', 'budget_max_cents',
+    'bedrooms_needed', 'preferred_neighborhoods', 'move_in_date', 'status', 'notes', 'source',
+    'created_at', 'updated_at', 'deleted_at'],
+  search_events: ['id', 'user_id', 'filters', 'result_count', 'surface', 'created_at'],
+  listing_view_events: ['id', 'unit_id', 'viewer_id', 'viewer_role', 'surface', 'created_at'],
+  api_usage_events: ['id', 'user_id', 'service', 'operation', 'model', 'prompt_tokens',
+    'completion_tokens', 'cost_micros', 'latency_ms', 'ok', 'created_at'],
 }
 
 // Nothing gets a whole-table read any more. `members` was granted and never
@@ -152,6 +162,7 @@ if (TABLE_READS.length) {
 statements.push({ label: 'inventory writes (no DELETE)', sql:
   `GRANT INSERT, UPDATE ON properties TO nessoo_admin_app;
    GRANT INSERT, UPDATE ON units TO nessoo_admin_app;
+   GRANT INSERT, UPDATE ON prospects TO nessoo_admin_app;
    GRANT INSERT ON audit_events TO nessoo_admin_app;` })
 
 function literal(s) { return `'${String(s).replace(/'/g, "''")}'` }
