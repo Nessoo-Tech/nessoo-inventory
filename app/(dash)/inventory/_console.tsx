@@ -6,11 +6,16 @@ import type { InventoryData, ListingRow, ProspectRow } from '@/lib/queries/inven
 import { fmtPrice, fmtDate, bedsLabel, CHART_COLORS } from '@/lib/format'
 import { ChartCard, BarChart, DoughnutChart } from '../_chart'
 import { runSearch, describeParsed, type SearchFilters } from './_search'
+import { NHOODS } from './_search'
+import { DemandTab, HealthTab } from './_demand-health'
+import type { GapReport, HealthReport } from '@/lib/gap-types'
 
-type Tab = 'inventory' | 'search' | 'leased' | 'renters' | 'analytics'
+type Tab = 'inventory' | 'search' | 'demand' | 'health' | 'leased' | 'renters' | 'analytics'
 const TABS: { key: Tab; label: string }[] = [
   { key: 'inventory', label: 'Inventory' },
   { key: 'search', label: 'Search' },
+  { key: 'demand', label: 'Demand' },
+  { key: 'health', label: 'Health' },
   { key: 'leased', label: 'Leased' },
   { key: 'renters', label: 'Renters' },
   { key: 'analytics', label: 'Analytics' },
@@ -38,7 +43,9 @@ function Kpi({ label, value, sub, tone }: { label: string; value: React.ReactNod
   )
 }
 
-export function InventoryConsole({ data, adminEmail }: { data: InventoryData; adminEmail: string }) {
+export function InventoryConsole({ data, gaps, health, adminEmail }: {
+  data: InventoryData; gaps: GapReport; health: HealthReport; adminEmail: string
+}) {
   const router = useRouter()
   const [tab, setTab] = useState<Tab>('inventory')
   const [view, setView] = useState<'cards' | 'table'>('cards')
@@ -87,6 +94,10 @@ export function InventoryConsole({ data, adminEmail }: { data: InventoryData; ad
   const { results: searchResults, parsed } = useMemo(
     () => runSearch(listings, query, filters, data.clients),
     [listings, query, filters, data.clients])
+
+  const allNhoodOptions = useMemo(
+    () => [...new Set([...NHOODS, ...data.listings.map((l) => l.neighborhood).filter(Boolean) as string[]])].sort(),
+    [data.listings])
 
   const allNhoods = useMemo(
     () => [...new Set(listings.map((l) => l.neighborhood).filter(Boolean) as string[])].sort(),
@@ -357,6 +368,12 @@ export function InventoryConsole({ data, adminEmail }: { data: InventoryData; ad
               )}
             </>
           )}
+
+          {/* ── DEMAND ────────────────────────────────────── */}
+          {tab === 'demand' && <DemandTab gaps={gaps} />}
+
+          {/* ── HEALTH ────────────────────────────────────── */}
+          {tab === 'health' && <HealthTab health={health} neighborhoods={allNhoodOptions} />}
 
           {/* ── LEASED ────────────────────────────────────── */}
           {tab === 'leased' && <LeasedTab listings={listings} />}

@@ -252,7 +252,7 @@ export async function getAdminData(days = 14): Promise<AdminData> {
       SELECT u.id, p.address, u.name AS unit, u.other_criteria->>'neighborhood' AS nb, u.rent_cents,
              (SELECT COUNT(*) FROM listing_view_events v WHERE v.unit_id = u.id)::int AS views,
              (SELECT COUNT(*) FROM connection_requests cr WHERE cr.unit_id = u.id)::int AS conns,
-             EXTRACT(DAY FROM NOW() - u.created_at)::int AS days_listed
+             (EXTRACT(EPOCH FROM (NOW() - u.created_at)) / 86400)::int AS days_listed
       FROM units u JOIN properties p ON p.id = u.property_id
       WHERE u.deleted_at IS NULL
       ORDER BY views DESC, conns DESC LIMIT 10`),
@@ -260,7 +260,7 @@ export async function getAdminData(days = 14): Promise<AdminData> {
     db.query(`
       SELECT u.id, p.address, u.name AS unit, u.other_criteria->>'neighborhood' AS nb, u.rent_cents,
              0 AS views, 0 AS conns,
-             EXTRACT(DAY FROM NOW() - u.created_at)::int AS days_listed
+             (EXTRACT(EPOCH FROM (NOW() - u.created_at)) / 86400)::int AS days_listed
       FROM units u JOIN properties p ON p.id = u.property_id
       WHERE u.deleted_at IS NULL AND u.status = 'active'
         AND NOT EXISTS (SELECT 1 FROM listing_view_events v WHERE v.unit_id = u.id)

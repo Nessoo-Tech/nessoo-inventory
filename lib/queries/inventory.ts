@@ -317,7 +317,8 @@ export async function createUnit(actor: Actor, input: UnitInput): Promise<string
 export async function updateUnit(
   actor: Actor,
   unitId: string,
-  patch: Partial<Pick<UnitInput, 'name' | 'bedrooms' | 'rentDollars' | 'status'>>,
+  patch: Partial<Pick<UnitInput, 'name' | 'bedrooms' | 'rentDollars' | 'status' | 'neighborhood'>>
+    & { availableFrom?: string | null },
 ): Promise<void> {
   const id = requireText(unitId, 'unit id', 100)
 
@@ -350,6 +351,27 @@ export async function updateUnit(
     params.push(patch.status)
     sets.push(`status = $${params.length}::unit_status`)
     applied.status = patch.status
+  }
+
+  if (patch.availableFrom !== undefined) {
+    const v = isUnset(patch.availableFrom) ? null : requireText(patch.availableFrom, 'available from', 10)
+    if (v !== null && !/^\d{4}-\d{2}-\d{2}$/.test(v)) throw new ValidationError('available from must be YYYY-MM-DD')
+    params.push(v)
+    sets.push(`available_from = $${params.length}::date`)
+    applied.availableFrom = v
+  }
+  if (patch.neighborhood !== undefined) {
+    // Merged into other_criteria rather than replacing it, so setting a
+    // neighborhood cannot silently drop features or the migration provenance
+    // stored alongside it.
+    const v = isUnset(patch.neighborhood) ? null : requireText(patch.neighborhood, 'neighborhood', 80)
+    if (v === null) {
+      sets.push(`other_criteria = other_criteria - 'neighborhood'`)
+    } else {
+      params.push(JSON.stringify({ neighborhood: v }))
+      sets.push(`other_criteria = COALESCE(other_criteria, '{}'::jsonb) || $${params.length}::jsonb`)
+    }
+    applied.neighborhood = v
   }
 
   if (!sets.length) throw new ValidationError('nothing to update')

@@ -70,7 +70,7 @@ export async function getInventoryData(): Promise<InventoryData> {
              u.available_from, u.created_at, u.updated_at, u.other_criteria,
              -- The legacy schema stored days_on_market as a column that drifted.
              -- Deriving it means it can never be stale.
-             EXTRACT(DAY FROM NOW() - u.created_at)::int AS days_on_market
+             (EXTRACT(EPOCH FROM (NOW() - u.created_at)) / 86400)::int AS days_on_market
       FROM units u
       JOIN properties p ON p.id = u.property_id
       JOIN organizations o ON o.id = u.org_id
