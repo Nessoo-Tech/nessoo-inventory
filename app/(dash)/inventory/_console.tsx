@@ -8,6 +8,7 @@ import { ChartCard, BarChart, DoughnutChart } from '../_chart'
 import { runSearch, describeParsed, type SearchFilters } from './_search'
 import { NHOODS } from './_search'
 import { DemandTab, HealthTab } from './_demand-health'
+import { AddUnitModal, ArchiveUnitModal } from './_add-unit'
 import type { GapReport, HealthReport } from '@/lib/gap-types'
 
 type Tab = 'inventory' | 'search' | 'demand' | 'health' | 'leased' | 'renters' | 'analytics'
@@ -57,6 +58,8 @@ export function InventoryConsole({ data, gaps, health, adminEmail }: {
   const [filters, setFilters] = useState<SearchFilters>({ beds: '', priceMax: '', status: '', clientId: '', nhoods: {} })
   const [nhoodOpen, setNhoodOpen] = useState(false)
   const [editing, setEditing] = useState<ListingRow | null>(null)
+  const [adding, setAdding] = useState(false)
+  const [archiving, setArchiving] = useState<ListingRow | null>(null)
   const [toast, setToast] = useState<{ msg: string; error?: boolean } | null>(null)
   const [busy, setBusy] = useState(false)
 
@@ -165,6 +168,7 @@ export function InventoryConsole({ data, gaps, health, adminEmail }: {
               <button className={view === 'cards' ? 'active' : ''} onClick={() => setView('cards')}>Cards</button>
               <button className={view === 'table' ? 'active' : ''} onClick={() => setView('table')}>Table</button>
             </div>
+            <button className="btn-add-listing" onClick={() => setAdding(true)}>+ Add unit</button>
           </div>
         </div>
       )}
@@ -226,7 +230,11 @@ export function InventoryConsole({ data, gaps, health, adminEmail }: {
               </div>
 
               {listings.length === 0 ? (
-                <div className="empty-state"><h3>No listings yet</h3><p>Add a unit, or pick a different client in the sidebar.</p></div>
+                <div className="empty-state">
+                  <h3>No listings yet</h3>
+                  <p>Add a unit, or pick a different client in the sidebar.</p>
+                  <button className="btn-primary" style={{ marginTop: 14 }} onClick={() => setAdding(true)}>+ Add unit</button>
+                </div>
               ) : view === 'cards' ? (
                 <>
                   <h2 className="section-heading">Your buildings</h2>
@@ -284,7 +292,12 @@ export function InventoryConsole({ data, gaps, health, adminEmail }: {
                           </td>
                           <td>{l.isPublished ? <span className="badge badge-green">live</span> : <span className="badge badge-muted">hidden</span>}</td>
                           <td>{fmtDate(l.availableFrom)}</td>
-                          <td><div className="row-actions"><button className="btn-icon" title="Edit" onClick={() => setEditing(l)}>&#9998;</button></div></td>
+                          <td>
+                            <div className="row-actions">
+                              <button className="btn-icon" title="Edit" onClick={() => setEditing(l)}>&#9998;</button>
+                              <button className="btn-icon danger" title="Archive" onClick={() => setArchiving(l)}>&#10005;</button>
+                            </div>
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -394,7 +407,20 @@ export function InventoryConsole({ data, gaps, health, adminEmail }: {
         </div></div>
       </div>
 
-      {editing && <ListingModal l={editing} busy={busy} onClose={() => setEditing(null)} onSave={patchUnit} />}
+      {editing && (
+        <ListingModal l={editing} busy={busy} onClose={() => setEditing(null)} onSave={patchUnit}
+          onArchive={() => { const l = editing; setEditing(null); setArchiving(l) }} />
+      )}
+      {adding && (
+        <AddUnitModal clients={data.clients} listings={data.listings}
+          onClose={() => setAdding(false)}
+          onDone={(m) => { say(m); router.refresh() }} />
+      )}
+      {archiving && (
+        <ArchiveUnitModal listing={archiving}
+          onClose={() => setArchiving(null)}
+          onDone={(m) => { say(m); router.refresh() }} />
+      )}
       {toast && <div className="toast-container"><div className={`toast${toast.error ? ' error' : ''}`}>{toast.msg}</div></div>}
     </>
   )
@@ -639,9 +665,10 @@ function AnalyticsTab({ listings }: { listings: ListingRow[] }) {
   )
 }
 
-function ListingModal({ l, busy, onClose, onSave }: {
+function ListingModal({ l, busy, onClose, onSave, onArchive }: {
   l: ListingRow; busy: boolean; onClose: () => void
   onSave: (id: string, body: Record<string, unknown>, msg: string) => Promise<boolean>
+  onArchive: () => void
 }) {
   const [name, setName] = useState(l.unit)
   const [beds, setBeds] = useState(l.bedrooms === null ? '' : String(l.bedrooms))
@@ -694,6 +721,7 @@ function ListingModal({ l, busy, onClose, onSave }: {
           </p>
         </div>
         <div className="modal-footer">
+          <button className="btn-danger" onClick={onArchive} disabled={busy}>Archive</button>
           <button className="btn-secondary" onClick={onClose}>Cancel</button>
           <button className="btn-primary" onClick={save} disabled={busy}>Save Listing</button>
         </div>

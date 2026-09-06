@@ -268,6 +268,7 @@ export interface UnitInput {
   rentDollars?: number | null
   status?: UnitStatus
   neighborhood?: string | null
+  availableFrom?: string | null
 }
 
 export async function createUnit(actor: Actor, input: UnitInput): Promise<string> {
@@ -287,6 +288,12 @@ export async function createUnit(actor: Actor, input: UnitInput): Promise<string
   const neighborhood = isUnset(input.neighborhood)
     ? null
     : requireText(input.neighborhood, 'neighborhood', 80)
+  const availableFrom = isUnset(input.availableFrom)
+    ? null
+    : requireText(input.availableFrom, 'available from', 10)
+  if (availableFrom !== null && !/^\d{4}-\d{2}-\d{2}$/.test(availableFrom)) {
+    throw new ValidationError('available from must be YYYY-MM-DD')
+  }
 
   return inTransaction(async (client) => {
     // The property must belong to the org being written to — this is the check
@@ -299,16 +306,17 @@ export async function createUnit(actor: Actor, input: UnitInput): Promise<string
     const other = neighborhood ? JSON.stringify({ neighborhood }) : null
 
     const { rows } = await client.query(
-      `INSERT INTO units (org_id, property_id, name, bedrooms, bathrooms, rent_cents, status, other_criteria)
-       VALUES ($1, $2, $3, $4, $5, $6, $7::unit_status, COALESCE($8::jsonb, '{}'::jsonb))
+      `INSERT INTO units (org_id, property_id, name, bedrooms, bathrooms, rent_cents, status,
+                          available_from, other_criteria)
+       VALUES ($1, $2, $3, $4, $5, $6, $7::unit_status, $8::date, COALESCE($9::jsonb, '{}'::jsonb))
        RETURNING id`,
-      [orgId, propertyId, name, bedrooms, bathrooms, rentCents, status, other])
+      [orgId, propertyId, name, bedrooms, bathrooms, rentCents, status, availableFrom, other])
 
     const id = rows[0].id
     // Record the values actually written, not the raw request — otherwise the
     // immutable log describes something different from the row it refers to.
     await audit(client, actor, 'create', 'unit', id, orgId, {
-      propertyId, name, bedrooms, bathrooms, rentCents, status, neighborhood,
+      propertyId, name, bedrooms, bathrooms, rentCents, status, neighborhood, availableFrom,
     })
     return id
   })
