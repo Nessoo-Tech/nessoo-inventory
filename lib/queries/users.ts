@@ -26,8 +26,13 @@ export interface AdminUserRow {
   verifiedIncomeCents: number | null
   readiness: number | null
   preferredCity: string | null
+  /** Neighborhoods picked during onboarding — up to 3. JSONB in the database,
+   *  not text[], so it needs jsonb handling rather than unnest. */
+  preferredNeighborhoods: string[]
   preferredBedrooms: number | null
   preferredMaxRent: number | null
+  preferredMinRent: number | null
+  moveInWindow: string | null
   connections: number
   requests: number
   lastActive: string | null
@@ -44,6 +49,7 @@ export async function listUsers(): Promise<AdminUserRow[]> {
            up.onboarding_completed, up.platform_role,
            rp.identity_verified, rp.income_verified, rp.verified_income_cents,
            rp.readiness_score, rp.preferred_city, rp.preferred_bedrooms, rp.preferred_max_rent,
+           rp.preferred_min_rent, rp.preferred_neighborhoods, rp.move_in_window,
            (SELECT COUNT(*) FROM connections c
               WHERE c.renter_id = u.id AND c.access_revoked_at IS NULL)::int AS connections,
            (SELECT COUNT(*) FROM connection_requests r WHERE r.renter_id = u.id)::int AS requests,
@@ -74,8 +80,11 @@ export async function listUsers(): Promise<AdminUserRow[]> {
     verifiedIncomeCents: n(r.verified_income_cents),
     readiness: n(r.readiness_score),
     preferredCity: r.preferred_city,
+    preferredNeighborhoods: Array.isArray(r.preferred_neighborhoods) ? r.preferred_neighborhoods : [],
     preferredBedrooms: n(r.preferred_bedrooms),
     preferredMaxRent: n(r.preferred_max_rent),
+    preferredMinRent: n(r.preferred_min_rent),
+    moveInWindow: r.move_in_window,
     connections: Number(r.connections),
     requests: Number(r.requests),
     lastActive: r.last_active ? new Date(r.last_active).toISOString() : null,
@@ -107,7 +116,8 @@ export function flagUsers(users: AdminUserRow[]): FlaggedGroups {
     neverReturned: renters.filter((u) => u.sessions <= 1 && days(u.createdAt) > 3),
     // Onboarded but told us nothing to match on.
     noPreferences: renters.filter(
-      (u) => u.onboarded && !u.preferredCity && !u.preferredBedrooms && !u.preferredMaxRent),
+      (u) => u.onboarded && !u.preferredCity && !u.preferredBedrooms
+             && !u.preferredMaxRent && u.preferredNeighborhoods.length === 0),
     emailUnverified: users.filter((u) => !u.emailVerified),
     // Was active, then silent for two weeks.
     wentQuiet: renters.filter((u) => u.sessions > 1 && days(u.lastActive) > 14),

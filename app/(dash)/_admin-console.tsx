@@ -90,9 +90,12 @@ export function AdminConsole({ data, users, flagged, adminEmail }: {
   function downloadCsv(list: AdminUserRow[]) {
     const esc = (v: unknown) => `"${String(v ?? '').replace(/"/g, '""')}"`
     const rows = [
-      ['Name', 'Email', 'Phone', 'Role', 'Market', 'Email verified', 'Signed up', 'Last active', 'Connections'],
+      ['Name', 'Email', 'Phone', 'Role', 'Market', 'Email verified', 'Signed up', 'Last active',
+       'Connections', 'Bedrooms', 'Max rent', 'Neighborhoods', 'Move-in'],
       ...list.map((u) => [u.name, u.email, u.phone, u.role, u.market, u.emailVerified ? 'yes' : 'no',
-        u.createdAt.slice(0, 10), u.lastActive?.slice(0, 10) ?? '', u.connections]),
+        u.createdAt.slice(0, 10), u.lastActive?.slice(0, 10) ?? '', u.connections,
+        u.preferredBedrooms ?? '', u.preferredMaxRent ? u.preferredMaxRent / 100 : '',
+        u.preferredNeighborhoods.join('; '), u.moveInWindow ?? '']),
     ]
     const blob = new Blob([rows.map((r) => r.map(esc).join(',')).join('\n')], { type: 'text/csv' })
     const a = document.createElement('a')
@@ -201,7 +204,15 @@ export function AdminConsole({ data, users, flagged, adminEmail }: {
                         </td>
                         <td>{fmtDate(u.createdAt)}</td>
                         <td>{u.lastActive ? fmtDate(u.lastActive) : 'never'}</td>
-                        <td>{u.preferredBedrooms !== null ? (u.preferredBedrooms === 0 ? 'Studio' : `${u.preferredBedrooms}BR`) : '--'} &middot; {fmtPrice(u.preferredMaxRent)}</td>
+                        <td>
+                          {u.preferredBedrooms !== null ? (u.preferredBedrooms === 0 ? 'Studio' : `${u.preferredBedrooms}BR`) : '--'} &middot; {fmtPrice(u.preferredMaxRent)}
+                          {u.preferredNeighborhoods.length > 0 && (
+                            <span style={{ color: 'var(--text-muted)' }}>
+                              {' '}&middot; {u.preferredNeighborhoods.slice(0, 2).join(', ')}
+                              {u.preferredNeighborhoods.length > 2 ? ` +${u.preferredNeighborhoods.length - 2}` : ''}
+                            </span>
+                          )}
+                        </td>
                         <td>{u.connections}</td>
                       </tr>
                     ))}
@@ -601,9 +612,23 @@ function UserDetail({ user, events, onClose }: {
           </div>
 
           <div className="user-profile-grid">
-            <div><div className="user-pref-label">Budget</div><div className="user-pref-value">{fmtPrice(user.preferredMaxRent)}</div></div>
+            <div><div className="user-pref-label">Budget</div><div className="user-pref-value">{budgetLabel(user)}</div></div>
             <div><div className="user-pref-label">Bedrooms</div><div className="user-pref-value">{user.preferredBedrooms === null ? 'Not set' : user.preferredBedrooms === 0 ? 'Studio' : `${user.preferredBedrooms}BR`}</div></div>
             <div><div className="user-pref-label">City</div><div className="user-pref-value">{user.preferredCity ?? 'Not set'}</div></div>
+            {/* What they actually picked at onboarding — the strongest signal
+                of intent on this screen, and the thing the Demand tab matches
+                inventory against. Full width because three names wrap. */}
+            <div style={{ gridColumn: '1 / -1' }}>
+              <div className="user-pref-label">Neighborhoods</div>
+              <div className="user-pref-value">
+                {user.preferredNeighborhoods.length === 0
+                  ? 'Not set'
+                  : user.preferredNeighborhoods.map((nb) => (
+                    <span key={nb} className="badge badge-blue" style={{ marginRight: 4 }}>{nb}</span>
+                  ))}
+              </div>
+            </div>
+            <div><div className="user-pref-label">Move-in</div><div className="user-pref-value">{user.moveInWindow ?? 'Flexible'}</div></div>
             <div><div className="user-pref-label">Signed Up</div><div className="user-pref-value">{fmtDate(user.createdAt)}</div></div>
             <div><div className="user-pref-label">Last Active</div><div className="user-pref-value">{user.lastActive ? fmtDate(user.lastActive) : 'never'}</div></div>
             <div><div className="user-pref-label">Sessions</div><div className="user-pref-value">{user.sessions}</div></div>
@@ -635,6 +660,15 @@ function UserDetail({ user, events, onClose }: {
       </div>
     </div>
   )
+}
+
+/** A range when both bounds exist — showing only the ceiling hid the floor. */
+function budgetLabel(u: AdminUserRow): string {
+  const lo = u.preferredMinRent, hi = u.preferredMaxRent
+  if (lo && hi) return `${fmtPrice(lo)} – ${fmtPrice(hi)}`
+  if (hi) return `up to ${fmtPrice(hi)}`
+  if (lo) return `from ${fmtPrice(lo)}`
+  return 'Not set'
 }
 
 function safeParse(s: string): Record<string, unknown> {
