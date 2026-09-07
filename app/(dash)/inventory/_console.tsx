@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import type { InventoryData, ListingRow, ProspectRow } from '@/lib/queries/inventory-data'
 import { fmtPrice, fmtDate, bedsLabel, CHART_COLORS } from '@/lib/format'
@@ -9,6 +9,8 @@ import { runSearch, describeParsed, type SearchFilters } from './_search'
 import { NHOODS } from './_search'
 import { DemandTab, HealthTab } from './_demand-health'
 import { AddUnitModal, ArchiveUnitModal } from './_add-unit'
+import { UnitPhotos } from './_photos'
+import type { UnitPhoto } from '@/lib/queries/photos'
 import type { GapReport, HealthReport } from '@/lib/gap-types'
 
 type Tab = 'inventory' | 'search' | 'demand' | 'health' | 'leased' | 'renters' | 'analytics'
@@ -44,8 +46,9 @@ function Kpi({ label, value, sub, tone }: { label: string; value: React.ReactNod
   )
 }
 
-export function InventoryConsole({ data, gaps, health, adminEmail }: {
+export function InventoryConsole({ data, gaps, health, adminEmail, photoCounts, storageReady }: {
   data: InventoryData; gaps: GapReport; health: HealthReport; adminEmail: string
+  photoCounts: Record<string, number>; storageReady: boolean
 }) {
   const router = useRouter()
   const [tab, setTab] = useState<Tab>('inventory')
@@ -263,7 +266,7 @@ export function InventoryConsole({ data, gaps, health, adminEmail }: {
                         <div className="occupancy-bar"><div className="occupancy-fill" style={{ width: `${occ}%` }} /></div>
                         <div className="building-count">{v.length} Vacant &middot; {r.length} Rented</div>
                         <div className="unit-grid">
-                          {units.map((u) => <UnitCard key={u.id} l={u} busy={busy} onOpen={() => setEditing(u)} onStatus={changeStatus} />)}
+                                          {units.map((u) => <UnitCard key={u.id} l={u} busy={busy} photos={photoCounts[u.id] ?? 0} onOpen={() => setEditing(u)} onStatus={changeStatus} />)}
                         </div>
                       </div>
                     )
@@ -375,7 +378,7 @@ export function InventoryConsole({ data, gaps, health, adminEmail }: {
               ) : (
                 <div className="unit-grid">
                   {searchResults.slice(0, 300).map((l) => (
-                    <UnitCard key={l.id} l={l} busy={busy} onOpen={() => setEditing(l)} onStatus={changeStatus} showAddress />
+                    <UnitCard key={l.id} l={l} busy={busy} photos={photoCounts[l.id] ?? 0} onOpen={() => setEditing(l)} onStatus={changeStatus} showAddress />
                   ))}
                 </div>
               )}
@@ -408,7 +411,8 @@ export function InventoryConsole({ data, gaps, health, adminEmail }: {
       </div>
 
       {editing && (
-        <ListingModal l={editing} busy={busy} onClose={() => setEditing(null)} onSave={patchUnit}
+        <ListingModal l={editing} busy={busy} storageReady={storageReady}
+          onClose={() => setEditing(null)} onSave={patchUnit}
           onArchive={() => { const l = editing; setEditing(null); setArchiving(l) }} />
       )}
       {adding && (
@@ -439,9 +443,9 @@ function nhoodLabel(m: Record<string, 'include' | 'exclude'>) {
   return inc ? `${inc} included` : `${exc} excluded`
 }
 
-function UnitCard({ l, busy, onOpen, onStatus, showAddress }: {
+function UnitCard({ l, busy, onOpen, onStatus, showAddress, photos = 0 }: {
   l: ListingRow; busy: boolean; onOpen: () => void
-  onStatus: (l: ListingRow, s: string) => void; showAddress?: boolean
+  onStatus: (l: ListingRow, s: string) => void; showAddress?: boolean; photos?: number
 }) {
   return (
     <div className="unit-card" onClick={onOpen} role="button" tabIndex={0}
@@ -473,8 +477,14 @@ function UnitCard({ l, busy, onOpen, onStatus, showAddress }: {
         <select className="status-select" value={l.status} disabled={busy} onChange={(e) => onStatus(l, e.target.value)}>
           {STATUSES.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
         </select>
-        <span className={`badge ${l.isPublished ? 'badge-green' : 'badge-muted'}`}>
-          {l.isPublished ? 'live' : 'hidden'}
+        <span style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+          <span className={`badge ${photos > 0 ? 'badge-blue' : 'badge-muted'}`}
+            title={photos > 0 ? `${photos} photo(s)` : 'No photos — renters see no image for this unit'}>
+            {photos > 0 ? `${photos} photo${photos === 1 ? '' : 's'}` : 'no photos'}
+          </span>
+          <span className={`badge ${l.isPublished ? 'badge-green' : 'badge-muted'}`}>
+            {l.isPublished ? 'live' : 'hidden'}
+          </span>
         </span>
       </div>
     </div>
@@ -665,11 +675,22 @@ function AnalyticsTab({ listings }: { listings: ListingRow[] }) {
   )
 }
 
-function ListingModal({ l, busy, onClose, onSave, onArchive }: {
+function ListingModal({ l, busy, onClose, onSave, onArchive, storageReady }: {
   l: ListingRow; busy: boolean; onClose: () => void
   onSave: (id: string, body: Record<string, unknown>, msg: string) => Promise<boolean>
-  onArchive: () => void
+  onArchive: () => void; storageReady: boolean
 }) {
+  // Fetched when the modal opens rather than with the whole list: signing URLs
+  // for 615 units' photos on every page load would be wasted work.
+  const [photos, setPhotos] = useState<UnitPhoto[] | null>(null)
+  useEffect(() => {
+    let alive = true
+    void fetch(`/api/units/${encodeURIComponent(l.id)}/photos`)
+      .then((r) => r.ok ? r.json() : { photos: [] })
+      .then((j) => { if (alive) setPhotos(j.photos ?? []) })
+      .catch(() => { if (alive) setPhotos([]) })
+    return () => { alive = false }
+  }, [l.id])
   const [name, setName] = useState(l.unit)
   const [beds, setBeds] = useState(l.bedrooms === null ? '' : String(l.bedrooms))
   const [rent, setRent] = useState(l.rentCents === null ? '' : String(l.rentCents / 100))
@@ -713,6 +734,10 @@ function ListingModal({ l, busy, onClose, onSave, onArchive }: {
             <div className="form-group"><label>Neighborhood</label><input value={l.neighborhood ?? ''} disabled /></div>
             <div className="form-group"><label>Client</label><input value={l.clientName} disabled /></div>
           </div>
+          {photos === null
+            ? <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--border)', fontSize: 12, color: 'var(--text-muted)' }}>Loading photos…</div>
+            : <UnitPhotos unitId={l.id} initial={photos} storageReady={storageReady} />}
+
           <p className="caveat">
             Status is the marketplace switch: <strong>Vacant</strong> publishes the unit,
             anything else removes it. This schema has no separate publish flag, so the two can

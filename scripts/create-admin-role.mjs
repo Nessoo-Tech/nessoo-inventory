@@ -99,6 +99,13 @@ const COLUMN_GRANTS = {
   listing_view_events: ['id', 'unit_id', 'viewer_id', 'viewer_role', 'surface', 'created_at'],
   api_usage_events: ['id', 'user_id', 'service', 'operation', 'model', 'prompt_tokens',
     'completion_tokens', 'cost_micros', 'latency_ms', 'ok', 'created_at'],
+
+  // Apartment photos. The console manages these, so it needs write access —
+  // and DELETE here specifically, unlike properties/units: removing a photo
+  // should actually remove the row, since a soft-deleted image still occupies
+  // the ordering and there is no history worth preserving in a wrong photo.
+  unit_photos: ['id', 'unit_id', 'storage_key', 'thumb_storage_key', 'content_type', 'bytes',
+    'width', 'height', 'alt', 'sort_order', 'uploaded_by', 'created_at', 'updated_at'],
 }
 
 // Nothing gets a whole-table read any more. `members` was granted and never
@@ -163,6 +170,7 @@ statements.push({ label: 'inventory writes (no DELETE)', sql:
   `GRANT INSERT, UPDATE ON properties TO nessoo_admin_app;
    GRANT INSERT, UPDATE ON units TO nessoo_admin_app;
    GRANT INSERT, UPDATE ON prospects TO nessoo_admin_app;
+   GRANT INSERT, UPDATE, DELETE ON unit_photos TO nessoo_admin_app;
    GRANT INSERT ON audit_events TO nessoo_admin_app;` })
 
 function literal(s) { return `'${String(s).replace(/'/g, "''")}'` }
