@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react'
 import type { AdminData } from '@/lib/queries/admin'
 import type { AdminUserRow, FlaggedGroups } from '@/lib/queries/users'
+import type { PaymentsReconciliation } from '@/lib/queries/payments'
 import { fmtDate, fmtPrice, relTime, daysSince, pct, CHART_COLORS } from '@/lib/format'
 import { ChartCard, LineChart, BarChart, DoughnutChart } from './_chart'
 
@@ -38,8 +39,9 @@ const NotTracked = () => (
   </span>
 )
 
-export function AdminConsole({ data, users, flagged, adminEmail }: {
+export function AdminConsole({ data, users, flagged, adminEmail, payments }: {
   data: AdminData; users: AdminUserRow[]; flagged: FlaggedGroups; adminEmail: string
+  payments: PaymentsReconciliation
 }) {
   const [tab, setTab] = useState<Tab>('users')
   const [q, setQ] = useState('')
@@ -518,7 +520,11 @@ export function AdminConsole({ data, users, flagged, adminEmail }: {
             <>
               <div className="kpi-row">
                 <Kpi label="This Month" value={fmtPrice(data.revenue.monthCents)} sub="renter fees collected" tone="gold" />
-                <Kpi label="All Time" value={fmtPrice(data.revenue.renterFeesCents)} sub={`${data.revenue.renterFeeCount} payments`} />
+                {/* Was `${renterFeeCount} payments`, which counted every
+                    succeeded row — including the $0 launch-promo rows. That
+                    read as 39 payments when only 7 involved money. */}
+                <Kpi label="All Time" value={fmtPrice(data.revenue.renterFeesCents)}
+                  sub={`${payments.collected.count} paid · ${payments.freeOfCharge.count} free of charge`} />
                 <Kpi label="Client Billing" value={fmtPrice(data.revenue.orgBillingCents)} sub="billed to organizations" />
                 <Kpi label="Active Subscriptions" value={data.revenue.activeSubscriptions} sub="paying organizations" />
               </div>
@@ -533,6 +539,105 @@ export function AdminConsole({ data, users, flagged, adminEmail }: {
               <div className="kpi-row" style={{ marginTop: 20 }}>
                 <Kpi label="AI Spend (all time)" value={`$${(data.revenue.aiSpendMicros / 1_000_000).toFixed(4)}`} sub="metered LLM cost" />
               </div>
+
+              {/* ── reconciliation ─────────────────────────── */}
+              <h3 className="section-heading sm" style={{ marginTop: 28 }}>Reconciliation</h3>
+              <p className="section-note">
+                Separates money actually received from rows that merely completed. The headline
+                above counts every succeeded row; only some of them involved a charge.
+              </p>
+
+              <div className="kpi-row">
+                <Kpi label="Collected" value={fmtPrice(payments.collected.cents)}
+                  sub={`${payments.collected.count} charge${payments.collected.count === 1 ? '' : 's'} over $0`} tone="green" />
+                <Kpi label="Free of Charge" value={payments.freeOfCharge.count}
+                  sub="succeeded at $0 — launch promo" />
+                <Kpi label="Pending" value={fmtPrice(payments.pending.cents)}
+                  sub={`${payments.pending.count} started, never completed`} tone="gold" />
+                <Kpi label="Refunded" value={fmtPrice(payments.refunded.cents)}
+                  sub={`${payments.refunded.count} reversed`} />
+              </div>
+
+              <div className="table-wrap scroll-x" style={{ marginTop: 16 }}>
+                <table>
+                  <thead><tr><th>Fee type</th><th>Status</th><th>Rows</th><th>Amount</th></tr></thead>
+                  <tbody>
+                    {payments.matrix.length === 0 && (
+                      <tr><td colSpan={4} className="table-empty">No payments recorded yet.</td></tr>
+                    )}
+                    {payments.matrix.map((r) => (
+                      <tr key={`${r.paymentType}-${r.status}`}>
+                        <td className="td-primary">{r.paymentType.replace(/_/g, ' ')}</td>
+                        <td>
+                          <span className={`badge ${r.status === 'succeeded' ? 'badge-green'
+                            : r.status === 'pending' ? 'badge-amber'
+                            : r.status === 'failed' || r.status === 'canceled' ? 'badge-red'
+                            : 'badge-muted'}`}>{r.status}</span>
+                        </td>
+                        <td>{r.count}</td>
+                        <td>{fmtPrice(r.cents)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <h3 className="section-heading sm" style={{ marginTop: 24 }}>Collected by Month</h3>
+              <p className="section-note">
+                Charges over $0 only, dated by payment date. The chart above plots amounts; this
+                adds how many charges produced them.
+              </p>
+              <div className="table-wrap">
+                <table>
+                  <thead><tr><th>Month</th><th>Charges</th><th>Collected</th></tr></thead>
+                  <tbody>
+                    {payments.byMonth.length === 0 && (
+                      <tr><td colSpan={3} className="table-empty">No charges over $0 recorded yet.</td></tr>
+                    )}
+                    {payments.byMonth.map((m) => (
+                      <tr key={m.month}>
+                        <td className="td-primary">{m.month}</td>
+                        <td>{m.count}</td>
+                        <td>{fmtPrice(m.cents)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <h3 className="section-heading sm" style={{ marginTop: 24 }}>Ledger Integrity</h3>
+              <p className="section-note">
+                Contradictions between a row&apos;s status and its own timestamps. These are what a
+                half-landed webhook or a raced write looks like. All zero is the expected state.
+              </p>
+              <div className="table-wrap">
+                <table>
+                  <thead><tr><th>Check</th><th>What it means</th><th>Rows</th></tr></thead>
+                  <tbody>
+                    {payments.integrity.map((c) => (
+                      <tr key={c.key}>
+                        <td className="td-primary">{c.label}</td>
+                        <td>{c.detail}</td>
+                        <td>
+                          {c.count === 0
+                            ? <span className="badge badge-green">0</span>
+                            : <span className="badge badge-red">{c.count}</span>}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <p className="caveat">
+                <strong>What this screen cannot tell you.</strong> The admin database role can read
+                six columns of the payment table by design — amount, type, status, and the paid and
+                refunded dates. It deliberately cannot read the renter id, the row&apos;s creation
+                date, or the Stripe identifiers. So this cannot say <em>whose</em> a pending payment
+                is, <em>how old</em> it is, or <em>which</em> Stripe intent to close out; ageing
+                above is by payment date, which pending rows do not have. Widening that is a
+                privilege decision, not a missing feature.
+              </p>
               <p className="caveat">
                 The original modelled a subscription business with ARPU and a
                 landlord/premium/renter split that does not match how this platform actually earns.
