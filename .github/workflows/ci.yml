@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  check:
+    name: Type-check, lint, build
+    runs-on: ubuntu-latest
+
+    env:
+      # Deliberately unreachable. This console reads production data through a
+      # column-restricted role, so a real DATABASE_URL in CI would point a
+      # build at live renter records. Every data route is dynamic, so the build
+      # only needs the variable to exist.
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/ci_never_connected
+      NEXT_TELEMETRY_DISABLED: "1"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type-check
+        run: npx tsc --noEmit
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+
+  # No test job: this repo has no test suite yet. The verify:role and
+  # verify:session scripts are NOT run here on purpose -- both connect to the
+  # real database to assert the admin role's column grants, so they are
+  # operational checks against production, not CI checks.
