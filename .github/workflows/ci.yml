@@ -27,8 +27,26 @@ jobs:
           node-version: "20"
           cache: npm
 
+      # `npm install`, not `npm ci`, and deliberately.
+      #
+      # npm ci requires package.json and package-lock.json to be perfectly in
+      # sync, including for OPTIONAL platform variants. The lockfile is
+      # generated on Windows, where npm never resolves @img/sharp-wasm32's
+      # dependency on @emnapi/runtime -- that variant is not installable on
+      # win32, so no top-level entry is written. On the Linux runner npm
+      # validates the whole optional tree, finds it missing and refuses:
+      #
+      #   npm error Missing: @emnapi/runtime@1.11.3 from lock file
+      #
+      # sharp is a direct dependency (EXIF stripping and thumbnails), so
+      # --omit=optional is not an out -- that would drop sharp's own native
+      # binary too. Regenerating the lockfile from a Linux checkout is the
+      # proper fix; until then npm install honours the lockfile for everything
+      # in it and resolves the platform gap rather than failing. CI that runs
+      # and catches real regressions beats CI that is red over a
+      # cross-platform lockfile artefact.
       - name: Install dependencies
-        run: npm ci
+        run: npm install --no-audit --no-fund
 
       - name: Type-check
         run: npx tsc --noEmit
