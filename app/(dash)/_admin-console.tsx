@@ -237,8 +237,19 @@ export function AdminConsole({ data, users, flagged, adminEmail, payments }: {
                 <Kpi label="Went Quiet" value={flagged.wentQuiet.length} sub="no activity in 14+ days" />
                 <Kpi label="0 Connections" value={flagged.noConnections} sub="never connected" />
                 <Kpi label="Stalled Verification" value={flagged.startedNotFinishedVerification.length} sub="started, not finished" tone="gold" />
+                <Kpi label="Income Needs Review" value={flagged.implausibleIncome.length} sub="verified figure to check by hand" tone="gold" />
               </div>
 
+              <FlaggedTable
+                title="Income Needs Manual Review"
+                note="Verified income too large to act on without a person checking it. A renter genuinely earning this is not qualifying through a 40x check, so the pipeline has almost certainly read something that is not wages — a brokerage or business account, or proceeds from a sale. The deposits are real; calling them a salary is the mistake. Confirm before a broker relies on it."
+                rows={flagged.implausibleIncome}
+                issue={(u) => (u.verifiedIncomeCents === null
+                  ? 'verified, amount unknown'
+                  : `verified $${Math.round(u.verifiedIncomeCents / 100).toLocaleString('en-US')}/yr`)}
+                onPick={setDetail}
+                onCopy={(rows) => copyEmails(rows, 'emails')}
+              />
               <FlaggedTable
                 title="Never Returned"
                 note="Registered more than 3 days ago and has only ever had one session. The most recoverable cohort — they wanted something and never came back for it."

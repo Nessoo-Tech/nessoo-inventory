@@ -103,8 +103,41 @@ export interface FlaggedGroups {
   emailUnverified: AdminUserRow[]
   wentQuiet: AdminUserRow[]
   startedNotFinishedVerification: AdminUserRow[]
+  /** Verified income nobody should act on before a human checks it. */
+  implausibleIncome: AdminUserRow[]
   noConnections: number
 }
+
+/**
+ * Verified income high enough that nobody should act on it without a human
+ * looking first.
+ *
+ * Not a wealth filter. A renter genuinely earning this is not qualifying for
+ * an apartment through a 40x check, so a figure this size means the pipeline
+ * read something that is not wage income -- a brokerage account, a business
+ * account, proceeds from a sale.
+ *
+ * The case this was written for: a renter reading $3.46m a year, on a live
+ * application, from 16 income sources of which 15 were single deposits
+ * ($151,500, $138,488, $138,188 ...) each divided by a 90-day window as
+ * though it recurred quarterly. The deposits were real; calling them a salary
+ * was not.
+ *
+ * Measured against production before shipping: catches 1 of 40 verified
+ * renters, and the next highest sits at $300,000 -- an eleven-fold gap, so
+ * there is no plausible renter near this line.
+ */
+const IMPLAUSIBLE_ANNUAL_INCOME_CENTS = 100_000_000 // $1,000,000
+
+/**
+ * Or: income wildly out of proportion to the rent they are actually shopping
+ * for. A renter qualifies at 40x, and real ones here sit at 36-46x. Ten times
+ * the bar is not a wealthy renter, it is a number to check by hand.
+ *
+ * Kept alongside the absolute ceiling because most renters have no stated
+ * budget to compare against, and the ceiling still catches those.
+ */
+const IMPLAUSIBLE_RENT_MULTIPLE = 400
 
 export function flagUsers(users: AdminUserRow[]): FlaggedGroups {
   const days = (iso: string | null) =>
@@ -124,6 +157,19 @@ export function flagUsers(users: AdminUserRow[]): FlaggedGroups {
     // Began verifying and stopped — the most recoverable cohort.
     startedNotFinishedVerification: renters.filter(
       (u) => (u.incomeVerified || u.identityVerified) && !(u.incomeVerified && u.identityVerified)),
+    // Flagged for manual review rather than corrected automatically: the
+    // deposits behind a figure like this are real, and whether they count as
+    // income is a judgement about the account, not arithmetic.
+    implausibleIncome: renters.filter((u) => {
+      const cents = u.verifiedIncomeCents
+      if (!u.incomeVerified || cents === null || cents <= 0) return false
+      if (cents > IMPLAUSIBLE_ANNUAL_INCOME_CENTS) return true
+      // preferred_max_rent is a MONTHLY figure in cents, so the multiple is
+      // annual income over monthly rent -- the same 40x the brokers quote.
+      const monthlyRent = u.preferredMaxRent
+      if (monthlyRent === null || monthlyRent <= 0) return false
+      return cents / monthlyRent > IMPLAUSIBLE_RENT_MULTIPLE
+    }),
     noConnections: renters.filter((u) => u.connections === 0).length,
   }
 }
