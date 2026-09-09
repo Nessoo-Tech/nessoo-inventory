@@ -24,6 +24,11 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
+          # 20 to match THIS project's Vercel setting (nodeVersion: 20.x).
+          # Deliberately different from homey-ux, which Vercel builds on 24.x:
+          # CI should check the runtime each project actually deploys on, so a
+          # green build means something about production rather than about a
+          # version nobody runs.
           node-version: "20"
           cache: npm
 
