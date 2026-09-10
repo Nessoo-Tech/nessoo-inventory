@@ -171,7 +171,19 @@ statements.push({ label: 'inventory writes (no DELETE)', sql:
    GRANT INSERT, UPDATE ON units TO nessoo_admin_app;
    GRANT INSERT, UPDATE ON prospects TO nessoo_admin_app;
    GRANT INSERT, UPDATE, DELETE ON unit_photos TO nessoo_admin_app;
-   GRANT INSERT ON audit_events TO nessoo_admin_app;` })
+   GRANT INSERT ON audit_events TO nessoo_admin_app;
+   -- INSERT ONLY on organizations, and that asymmetry is the point.
+   --
+   -- Adding a client creates a TENANT, not a row inside one: org_id is the
+   -- boundary every other table hangs off, and is_model_b on this row decides
+   -- whether a whole portfolio is visible to the open market. So the console
+   -- can bring a client into existence, and cannot afterwards rename one,
+   -- re-point its billing, flip it closed, or soft-delete it. A mistake made
+   -- here needs a human with real credentials to correct, which is the right
+   -- amount of friction for a row of this consequence.
+   --
+   -- Do NOT extend this to UPDATE or DELETE without deciding that separately.
+   GRANT INSERT ON organizations TO nessoo_admin_app;` })
 
 function literal(s) { return `'${String(s).replace(/'/g, "''")}'` }
 function ident(s) { return `"${String(s).replace(/"/g, '""')}"` }

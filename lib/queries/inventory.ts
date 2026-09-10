@@ -235,6 +235,124 @@ export interface PropertyInput {
   zip: string
 }
 
+export interface ClientInput {
+  name: string
+  /** URL-safe identifier. Derived from the name when omitted. */
+  slug?: string | null
+  billingEmail?: string | null
+}
+
+/**
+ * a-z, 0-9 and single hyphens, so it is safe in a /j/<slug> style URL.
+ *
+ * NFKD then STRIP the combining marks, rather than letting the catch-all
+ * replace turn them into hyphens. Decomposing "Ünïtéd" yields U + combining
+ * diaeresis + n + combining diaeresis + ..., so replacing every non-a-z run
+ * with a hyphen produced "u-ni-te-d-homes-co" for "Ünïtéd Homes & Co." — a
+ * legible name turned into rubble. Removing the marks first gives
+ * "united-homes-co".
+ *
+ * Can return '' — a name written entirely outside the Latin alphabet, or one
+ * that is all punctuation, has nothing to derive from. createClient treats
+ * that as "ask for a slug" rather than pretending it worked.
+ */
+export function slugifyClientName(name: string): string {
+  return String(name ?? '')
+    .normalize('NFKD')
+    // Unicode combining marks, left behind by the decomposition above.
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 60)
+    // A trailing hyphen can reappear after the slice.
+    .replace(/-+$/g, '')
+}
+
+/**
+ * Add a client — an `organizations` row, which is the tenant boundary
+ * everything else hangs off.
+ *
+ * Three guardrails, because this is the one write in this console that creates
+ * a tenant rather than a row inside one:
+ *
+ * 1. is_model_b is forced FALSE and is not settable from here. TRUE means
+ *    closed-market: that org's inventory is hidden from the open pool and only
+ *    reaches renters explicitly scoped to it. Getting that wrong on creation
+ *    would either hide a client's units from everyone or expose a private
+ *    portfolio, and neither is visible in this UI afterwards. Someone can flip
+ *    it deliberately in the database; it should not ride along with a form.
+ *
+ * 2. The role has INSERT but deliberately NOT UPDATE or DELETE on
+ *    organizations, so a mistake here can be corrected by a human with real
+ *    credentials but cannot be compounded — or hidden — by this console.
+ *
+ * 3. The slug collision is reported as a validation error rather than a 500.
+ *    It is UNIQUE, and "Fluffy Realty" twice is a normal thing for someone to
+ *    try, not a fault.
+ */
+export async function createClient(actor: Actor, input: ClientInput): Promise<string> {
+  const name = requireText(input.name, 'client name', 200)
+  const slug = isUnset(input.slug)
+    ? slugifyClientName(name)
+    : requireText(input.slug, 'slug', 60)
+  if (slug === '') {
+    // Reached when the name has no Latin letters or digits at all — a name in
+    // another script, or all punctuation. "may use only lowercase letters"
+    // would be a baffling thing to tell someone who typed a perfectly good
+    // company name, so say what is actually needed.
+    throw new ValidationError('could not build a URL name from that — enter a slug')
+  }
+  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
+    throw new ValidationError('slug may use only lowercase letters, numbers and hyphens')
+  }
+  const billingEmail = isUnset(input.billingEmail)
+    ? null
+    : requireText(input.billingEmail, 'billing email', 200)
+  // Deliberately shallow: a real address check belongs to whatever sends mail,
+  // and rejecting an unusual-but-valid address is worse than storing it.
+  if (billingEmail !== null && !billingEmail.includes('@')) {
+    throw new ValidationError('billing email must contain @')
+  }
+
+  return inTransaction(async (client) => {
+    const { rows: clash } = await client.query(
+      'SELECT 1 FROM organizations WHERE slug = $1', [slug])
+    // No deleted_at filter: slug is UNIQUE across the whole table, so a
+    // soft-deleted org still holds its slug and the INSERT would still fail.
+    if (clash.length) {
+      throw new ValidationError(`slug "${slug}" is already taken`)
+    }
+
+    // The pre-check above is for the error MESSAGE, not for correctness: it is
+    // check-then-insert, so two admins adding the same client at once can both
+    // pass it. The UNIQUE constraint is what actually decides, and its raw
+    // 23505 would surface to the admin as a bare "request failed" (see
+    // lib/api.ts). Translate it, so the second admin is told what happened.
+    let rows: { id: string }[]
+    try {
+      ({ rows } = await client.query(
+        `INSERT INTO organizations (name, slug, type, is_model_b, billing_email)
+         VALUES ($1, $2, 'enterprise'::org_type, FALSE, $3)
+         RETURNING id`,
+        [name, slug, billingEmail]))
+    } catch (e) {
+      if ((e as { code?: string }).code === '23505') {
+        throw new ValidationError(`slug "${slug}" is already taken`)
+      }
+      throw e
+    }
+
+    const id = rows[0].id
+    // orgId is the new org itself — this row IS the org, so the audit entry
+    // belongs to it rather than to some parent.
+    await audit(client, actor, 'create', 'organization', id, id, {
+      name, slug, billingEmail, is_model_b: false,
+    })
+    return id
+  })
+}
+
 export async function createProperty(actor: Actor, input: PropertyInput): Promise<string> {
   const orgId = requireText(input.orgId, 'organization', 100)
   const name = requireText(input.name, 'name')
@@ -269,6 +387,18 @@ export interface UnitInput {
   status?: UnitStatus
   neighborhood?: string | null
   availableFrom?: string | null
+  /**
+   * Free-text note kept with the unit — why it is priced where it is, who to
+   * call about access, what the last tenant broke.
+   *
+   * Stored in other_criteria alongside neighborhood/features rather than in a
+   * column of its own: that keeps it inside the SELECT allowlist the admin
+   * role already has, so no migration and no privilege change. It is INTERNAL.
+   * Nothing on the broker or renter side reads other_criteria.notes, and it
+   * should stay that way unless someone deliberately surfaces it — a note
+   * written for colleagues is not listing copy.
+   */
+  notes?: string | null
 }
 
 export async function createUnit(actor: Actor, input: UnitInput): Promise<string> {
@@ -278,6 +408,9 @@ export async function createUnit(actor: Actor, input: UnitInput): Promise<string
   const bedrooms = optionalInt(input.bedrooms, 'bedrooms', 0, 20)
   const bathrooms = optionalDecimal(input.bathrooms, 'bathrooms', 0, 20)
   const rentCents = optionalMoneyCents(input.rentDollars, 'rent')
+  // 2000 rather than the 60-80 used for names: this is prose, and truncating
+  // someone's note in the middle of a sentence is worse than refusing it.
+  const notes = isUnset(input.notes) ? null : requireText(input.notes, 'notes', 2000)
   const status: UnitStatus = UNIT_STATUSES.includes(input.status as UnitStatus)
     ? (input.status as UnitStatus)
     : 'active'
@@ -303,7 +436,12 @@ export async function createUnit(actor: Actor, input: UnitInput): Promise<string
       [propertyId, orgId])
     if (!prop.length) throw new ValidationError('building not found for this organization')
 
-    const other = neighborhood ? JSON.stringify({ neighborhood }) : null
+    // Both optional, so build the object rather than assuming either is set —
+    // and keep it null when empty so the INSERT's COALESCE still yields '{}'.
+    const criteria: Record<string, string> = {}
+    if (neighborhood) criteria.neighborhood = neighborhood
+    if (notes) criteria.notes = notes
+    const other = Object.keys(criteria).length ? JSON.stringify(criteria) : null
 
     const { rows } = await client.query(
       `INSERT INTO units (org_id, property_id, name, bedrooms, bathrooms, rent_cents, status,
@@ -316,7 +454,7 @@ export async function createUnit(actor: Actor, input: UnitInput): Promise<string
     // Record the values actually written, not the raw request — otherwise the
     // immutable log describes something different from the row it refers to.
     await audit(client, actor, 'create', 'unit', id, orgId, {
-      propertyId, name, bedrooms, bathrooms, rentCents, status, neighborhood, availableFrom,
+      propertyId, name, bedrooms, bathrooms, rentCents, status, neighborhood, availableFrom, notes,
     })
     return id
   })
@@ -325,7 +463,7 @@ export async function createUnit(actor: Actor, input: UnitInput): Promise<string
 export async function updateUnit(
   actor: Actor,
   unitId: string,
-  patch: Partial<Pick<UnitInput, 'name' | 'bedrooms' | 'rentDollars' | 'status' | 'neighborhood'>>
+  patch: Partial<Pick<UnitInput, 'name' | 'bedrooms' | 'rentDollars' | 'status' | 'neighborhood' | 'notes'>>
     & { availableFrom?: string | null },
 ): Promise<void> {
   const id = requireText(unitId, 'unit id', 100)
@@ -380,6 +518,20 @@ export async function updateUnit(
       sets.push(`other_criteria = COALESCE(other_criteria, '{}'::jsonb) || $${params.length}::jsonb`)
     }
     applied.neighborhood = v
+  }
+
+  if (patch.notes !== undefined) {
+    // Same merge as neighborhood, for the same reason: replacing
+    // other_criteria would drop features and the migration provenance stored
+    // beside it. Clearing the note removes just that key.
+    const v = isUnset(patch.notes) ? null : requireText(patch.notes, 'notes', 2000)
+    if (v === null) {
+      sets.push(`other_criteria = other_criteria - 'notes'`)
+    } else {
+      params.push(JSON.stringify({ notes: v }))
+      sets.push(`other_criteria = COALESCE(other_criteria, '{}'::jsonb) || $${params.length}::jsonb`)
+    }
+    applied.notes = v
   }
 
   if (!sets.length) throw new ValidationError('nothing to update')

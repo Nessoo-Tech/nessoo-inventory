@@ -35,6 +35,22 @@ export function AddUnitModal({ clients, listings, onClose, onDone }: {
   const [baths, setBaths] = useState('1')
   const [rent, setRent] = useState('')
   const [neighborhood, setNeighborhood] = useState('')
+  const [notes, setNotes] = useState('')
+  const [newClient, setNewClient] = useState(false)
+  const [clientName, setClientName] = useState('')
+  const [clientSlug, setClientSlug] = useState('')
+  // Mirrors slugifyClientName in lib/queries/inventory.ts. Duplicated because
+  // that module is server-only; the server re-derives and re-validates, so
+  // this is a preview, never the authority.
+  const derivedSlug = clientName
+    .normalize('NFKD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 60)
+    .replace(/-+$/g, '')
+  const effectiveSlug = clientSlug.trim() || derivedSlug
   const [available, setAvailable] = useState('')
   const [status, setStatus] = useState('active')
   const [busy, setBusy] = useState(false)
@@ -55,6 +71,18 @@ export function AddUnitModal({ clients, listings, onClose, onDone }: {
     [listings])
 
   function pickClient(id: string) {
+    // '__new__' opens the inline client fields instead of selecting an org.
+    // Same shape as newBuilding below, which already creates a property inline
+    // — adding a client mid-flow is the same interruption and deserves the
+    // same treatment rather than a separate screen.
+    if (id === '__new__') {
+      setNewClient(true)
+      setClientId('')
+      setPropertyId('')
+      setNewBuilding(true)
+      return
+    }
+    setNewClient(false)
     setClientId(id)
     setPropertyId('')
     // A client with no buildings can only create one, so skip the dead dropdown.
@@ -63,20 +91,46 @@ export function AddUnitModal({ clients, listings, onClose, onDone }: {
 
   async function save() {
     setError(null)
-    if (!clientId) return setError('Pick a client')
+    if (!newClient && !clientId) return setError('Pick a client')
+    if (newClient && !clientName.trim()) return setError('Name the new client')
     if (!newBuilding && !propertyId) return setError('Pick a building, or add a new one')
     if (newBuilding && !address.trim()) return setError('Building address is required')
     if (!unit.trim()) return setError('Unit name is required')
 
     setBusy(true)
     try {
+      // A brand-new client has to exist before a building can hang off it.
+      // Not wrapped in a transaction with the rest: these are three separate
+      // API calls, so a failure at the building step leaves the client
+      // created. That is the honest trade for reusing the existing endpoints,
+      // and it errs the right way — an empty client is visible and fixable,
+      // whereas a building with no owner would not be reachable at all.
+      let targetClient = clientId
+      if (newClient) {
+        const res = await fetch('/api/clients', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          // Send the slug only when it was typed; otherwise let the server
+          // derive it, so there is one authority rather than two that can drift.
+          body: JSON.stringify({
+            name: clientName.trim(),
+            ...(clientSlug.trim() ? { slug: clientSlug.trim() } : {}),
+          }),
+        })
+        const j = await res.json().catch(() => ({}))
+        if (!res.ok) {
+          setError(j.error ?? `Could not create the client (${res.status})`)
+          return
+        }
+        targetClient = j.id
+      }
+
       let targetProperty = propertyId
 
       if (newBuilding) {
         const res = await fetch('/api/properties', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            orgId: clientId, name: address.trim(), address: address.trim(),
+            orgId: targetClient, name: address.trim(), address: address.trim(),
             city: city.trim() || 'New York', state: 'NY', zip: zip.trim() || '10001',
           }),
         })
@@ -88,11 +142,13 @@ export function AddUnitModal({ clients, listings, onClose, onDone }: {
       const res = await fetch('/api/units', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          orgId: clientId, propertyId: targetProperty, name: unit.trim(),
+          orgId: targetClient, propertyId: targetProperty, name: unit.trim(),
           bedrooms: beds === '' ? null : Number(beds),
           bathrooms: baths === '' ? null : Number(baths),
           rentDollars: rent === '' ? null : Number(rent),
           neighborhood: neighborhood || null,
+          // Internal only — nothing on the broker or renter side reads it.
+          notes: notes.trim() || null,
           availableFrom: available || null,
           status,
         }),
@@ -123,8 +179,50 @@ export function AddUnitModal({ clients, listings, onClose, onDone }: {
                 {clients.map((c) => (
                   <option key={c.id} value={c.id}>{c.name} ({c.unitCount})</option>
                 ))}
+                <option value="__new__">+ Add a new client…</option>
               </select>
             </div>
+
+            {newClient && (
+              <div className="form-group full-width">
+                <label htmlFor="new-client-name">New client name *</label>
+                <input
+                  id="new-client-name"
+                  value={clientName}
+                  onChange={(e) => setClientName(e.target.value)}
+                  placeholder="e.g. Fluffy Realty"
+                  maxLength={200}
+                />
+                <div style={{ fontSize: 11, opacity: 0.6, marginTop: 4 }}>
+                  Created as an open-market client. Closed-market clients are set
+                  up separately — this form cannot make one.
+                </div>
+              </div>
+            )}
+
+            {newClient && (
+              <div className="form-group full-width">
+                <label htmlFor="new-client-slug">
+                  URL name{derivedSlug ? ' (optional)' : ' *'}
+                </label>
+                <input
+                  id="new-client-slug"
+                  value={clientSlug}
+                  onChange={(e) => setClientSlug(e.target.value)}
+                  placeholder={derivedSlug || 'e.g. fluffy-realty'}
+                  maxLength={60}
+                />
+                <div style={{ fontSize: 11, opacity: 0.6, marginTop: 4 }}>
+                  {effectiveSlug
+                    ? <>Will be saved as <code>{effectiveSlug}</code>. Must be unique.</>
+                    : /* A name with no Latin letters or digits — a name in another
+                         script, or all punctuation — derives nothing, so it has to
+                         be typed. Without this field such a client could not be
+                         created here at all. */
+                      <>This name has no letters or numbers we can use — type a URL name.</>}
+                </div>
+              </div>
+            )}
 
             {clientId && (
               <div className="form-group full-width">
@@ -185,6 +283,21 @@ export function AddUnitModal({ clients, listings, onClose, onDone }: {
             </div>
             <div className="form-group"><label>Available from</label>
               <input type="date" value={available} onChange={(e) => setAvailable(e.target.value)} /></div>
+            <div className="form-group full-width">
+              <label htmlFor="unit-notes">Notes</label>
+              <textarea
+                id="unit-notes"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                rows={3}
+                maxLength={2000}
+                placeholder="Internal only — access instructions, why the rent is set here, anything the next person needs."
+                style={{ resize: 'vertical', fontFamily: 'inherit', fontSize: 'inherit' }}
+              />
+              <div style={{ fontSize: 11, opacity: 0.6, marginTop: 4 }}>
+                Kept with the unit for your team. Renters and brokers never see this.
+              </div>
+            </div>
             <div className="form-group full-width">
               <label>Status</label>
               <select value={status} onChange={(e) => setStatus(e.target.value)}>
