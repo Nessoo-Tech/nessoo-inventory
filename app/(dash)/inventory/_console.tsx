@@ -7,6 +7,7 @@ import { fmtPrice, fmtDate, bedsLabel, CHART_COLORS } from '@/lib/format'
 import { ChartCard, BarChart, DoughnutChart } from '../_chart'
 import { runSearch, describeParsed, type SearchFilters } from './_search'
 import { NHOODS } from './_search'
+import { resolveNeighborhood, CANONICAL_NAMES } from '@/lib/neighborhoods'
 import { DemandTab, HealthTab } from './_demand-health'
 import { AddUnitModal, ArchiveUnitModal } from './_add-unit'
 import { UnitPhotos } from './_photos'
@@ -102,7 +103,7 @@ export function InventoryConsole({ data, gaps, health, adminEmail, photoCounts, 
     [listings, query, filters, data.clients])
 
   const allNhoodOptions = useMemo(
-    () => [...new Set([...NHOODS, ...data.listings.map((l) => l.neighborhood).filter(Boolean) as string[]])].sort(),
+    () => [...new Set([...CANONICAL_NAMES, ...NHOODS, ...data.listings.map((l) => l.neighborhood).filter(Boolean) as string[]])].sort(),
     [data.listings])
 
   const allNhoods = useMemo(
@@ -695,11 +696,17 @@ function ListingModal({ l, busy, onClose, onSave, onArchive, storageReady }: {
   const [beds, setBeds] = useState(l.bedrooms === null ? '' : String(l.bedrooms))
   const [rent, setRent] = useState(l.rentCents === null ? '' : String(l.rentCents / 100))
   const [status, setStatus] = useState(l.status)
+  const [neighborhood, setNeighborhood] = useState(l.neighborhood ?? '')
+  const resolvedNeighborhood = useMemo(() => resolveNeighborhood(neighborhood), [neighborhood])
 
   async function save() {
     const body: Record<string, unknown> = { name, status }
     body.bedrooms = beds === '' ? null : Number(beds)
     body.rentDollars = rent === '' ? null : Number(rent)
+    // Sent only when it actually changed, so saving a rent edit does not
+    // rewrite other_criteria for no reason. null clears it.
+    const next = resolvedNeighborhood?.name ?? null
+    if (next !== (l.neighborhood ?? null)) body.neighborhood = next
     if (await onSave(l.id, body, 'Listing updated')) onClose()
   }
 
@@ -731,7 +738,37 @@ function ListingModal({ l, busy, onClose, onSave, onArchive, storageReady }: {
                 {STATUSES.filter((s) => SAVEABLE.has(s.value)).map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
               </select>
             </div>
-            <div className="form-group"><label>Neighborhood</label><input value={l.neighborhood ?? ''} disabled /></div>
+            {/* Editable now. It was grouped with Building and Client as
+                read-only, but those are foreign keys and changing one MOVES a
+                unit to another building or company. A neighborhood is a text
+                label in the unit's own other_criteria — and locking it meant
+                nobody could fix a unit saved with the wrong one, or fill in the
+                35 live units that have none at all. updateUnit already
+                supported the patch; only this input was disabled. */}
+            <div className="form-group">
+              <label htmlFor={`nb-${l.id}`}>Neighborhood</label>
+              <input
+                id={`nb-${l.id}`}
+                list="neighborhood-options-edit"
+                value={neighborhood}
+                onChange={(e) => setNeighborhood(e.target.value)}
+                placeholder="Type or pick — blank clears it"
+                maxLength={80}
+                autoComplete="off"
+              />
+              <datalist id="neighborhood-options-edit">
+                {[...new Set([...CANONICAL_NAMES, ...NHOODS])].sort().map((n) => <option key={n} value={n} />)}
+              </datalist>
+              {resolvedNeighborhood?.snappedFrom ? (
+                <div style={{ fontSize: 11, marginTop: 4, opacity: 0.75 }}>
+                  Saves as <b>{resolvedNeighborhood.name}</b> — the spelling the public page uses.
+                </div>
+              ) : resolvedNeighborhood && !resolvedNeighborhood.canonical ? (
+                <div style={{ fontSize: 11, marginTop: 4, opacity: 0.75 }}>
+                  New neighborhood — searchable by renters, but no public /nyc page yet.
+                </div>
+              ) : null}
+            </div>
             <div className="form-group"><label>Client</label><input value={l.clientName} disabled /></div>
           </div>
           {photos === null
@@ -741,8 +778,8 @@ function ListingModal({ l, busy, onClose, onSave, onArchive, storageReady }: {
           <p className="caveat">
             Status is the marketplace switch: <strong>Vacant</strong> publishes the unit,
             anything else removes it. This schema has no separate publish flag, so the two can
-            never disagree. Building, neighborhood and client are read-only here — moving a unit
-            between buildings or organizations is not something to do by accident.
+            never disagree. Building and client stay read-only — moving a unit between
+            buildings or organizations is not something to do by accident.
           </p>
         </div>
         <div className="modal-footer">

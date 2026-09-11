@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react'
 import type { ClientRow, ListingRow } from '@/lib/queries/inventory-data'
 import { NHOODS } from './_search'
+import { resolveNeighborhood, CANONICAL_NAMES } from '@/lib/neighborhoods'
 
 /**
  * Add a unit.
@@ -66,9 +67,29 @@ export function AddUnitModal({ clients, listings, onClose, onDone }: {
     return [...seen.entries()].sort((a, b) => a[1].localeCompare(b[1]))
   }, [listings, clientId])
 
+  // Suggestions now lead with every CANONICAL neighborhood — the list that
+  // actually has public pages — which the old 30-name list did not: 32 valid
+  // ones were simply unofferable, and 11 of the 30 were not canonical at all.
+  // The non-canonical names stay in the list because they are real places
+  // (Bay Ridge, Flushing, Jamaica); the note under the field is what tells the
+  // truth about which of them has a page.
   const neighborhoodOptions = useMemo(
-    () => [...new Set([...NHOODS, ...listings.map((l) => l.neighborhood).filter(Boolean) as string[]])].sort(),
+    () => [...new Set([
+      ...CANONICAL_NAMES,
+      ...NHOODS,
+      ...listings.map((l) => l.neighborhood).filter(Boolean) as string[],
+    ])].sort(),
     [listings])
+
+  // What will actually be stored: the canonical spelling when the typed text
+  // matches one loosely, otherwise the text as typed.
+  const resolvedNeighborhood = useMemo(() => resolveNeighborhood(neighborhood), [neighborhood])
+
+  // The old copy hardcoded "99 of your live units" — it had drifted; the real
+  // figure was 35. Counted from the rows on screen instead, so it cannot go
+  // stale again.
+  const missingNeighborhood = useMemo(
+    () => listings.filter((l) => !l.neighborhood).length, [listings])
 
   function pickClient(id: string) {
     // '__new__' opens the inline client fields instead of selecting an org.
@@ -146,7 +167,10 @@ export function AddUnitModal({ clients, listings, onClose, onDone }: {
           bedrooms: beds === '' ? null : Number(beds),
           bathrooms: baths === '' ? null : Number(baths),
           rentDollars: rent === '' ? null : Number(rent),
-          neighborhood: neighborhood || null,
+          // The RESOLVED name, not the raw text: "SoHo" and "Soho" must not
+          // become two neighborhoods splitting one area's inventory with only
+          // one of them reachable from a public page.
+          neighborhood: resolvedNeighborhood?.name ?? null,
           // Internal only — nothing on the broker or renter side reads it.
           notes: notes.trim() || null,
           availableFrom: available || null,
@@ -275,11 +299,45 @@ export function AddUnitModal({ clients, listings, onClose, onDone }: {
             <div className="form-group"><label>Bathrooms</label>
               <input type="number" min={0} step={0.5} value={baths} onChange={(e) => setBaths(e.target.value)} /></div>
             <div className="form-group">
-              <label>Neighborhood</label>
-              <select value={neighborhood} onChange={(e) => setNeighborhood(e.target.value)}>
-                <option value="">Not set</option>
-                {neighborhoodOptions.map((n) => <option key={n} value={n}>{n}</option>)}
-              </select>
+              <label htmlFor="unit-neighborhood">Neighborhood</label>
+              {/* A text input with a datalist, not a select: new neighborhoods
+                  appear constantly and the old dropdown could not accept one.
+                  Native datalist keeps the suggestions without taking away
+                  typing — no combobox library, no keyboard behaviour to
+                  reimplement. */}
+              <input
+                id="unit-neighborhood"
+                list="neighborhood-options"
+                value={neighborhood}
+                onChange={(e) => setNeighborhood(e.target.value)}
+                placeholder="Type or pick — e.g. Bushwick"
+                maxLength={80}
+                autoComplete="off"
+              />
+              <datalist id="neighborhood-options">
+                {neighborhoodOptions.map((n) => <option key={n} value={n} />)}
+              </datalist>
+              {resolvedNeighborhood && (
+                <div style={{ fontSize: 11, marginTop: 4, opacity: 0.75 }}>
+                  {resolvedNeighborhood.snappedFrom ? (
+                    // Say it plainly: the admin typed one thing and we are
+                    // saving another. Silent correction is how someone ends up
+                    // not trusting the form.
+                    <>Saves as <b>{resolvedNeighborhood.name}</b> — the spelling
+                    the public page uses ({resolvedNeighborhood.path}).</>
+                  ) : resolvedNeighborhood.canonical ? (
+                    <>Has a public page — <code>{resolvedNeighborhood.path}</code></>
+                  ) : (
+                    // The honest version of the tradeoff the user accepted:
+                    // renter search reads neighborhoods out of the database, so
+                    // a new name works immediately; the public page needs the
+                    // name added to homey-ux's gazetteer.
+                    <>New neighborhood. Renters can search it right away. It gets
+                    no public <code>/nyc</code> page until it is added to the
+                    neighborhood list — ask an engineer.</>
+                  )}
+                </div>
+              )}
             </div>
             <div className="form-group"><label>Available from</label>
               <input type="date" value={available} onChange={(e) => setAvailable(e.target.value)} /></div>
@@ -311,7 +369,8 @@ export function AddUnitModal({ clients, listings, onClose, onDone }: {
           {!neighborhood && (
             <p className="caveat">
               Without a neighborhood this unit is invisible to neighborhood search and to every
-              /nyc page. 99 of your live units already have this problem — see the Health tab.
+              /nyc page.{missingNeighborhood > 0 && <> {missingNeighborhood} of your live units
+              already {missingNeighborhood === 1 ? 'has' : 'have'} this problem — see the Health tab.</>}
             </p>
           )}
           {error && (
